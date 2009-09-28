@@ -25,7 +25,7 @@ package com.nodename.Delaunay
 	
 	public final class Voronoi
 	{
-		private var _sites:Vector.<Site>;
+		private var _sites:SiteList;
 		private var _siteMap:Dictionary;
 		private var _triangles:Vector.<Triangle>;
 		private var _edges:Vector.<Edge>;
@@ -44,12 +44,7 @@ package com.nodename.Delaunay
 			var i:int, n:int;
 			if (_sites)
 			{
-				n = _sites.length;
-				for (i = 0; i < n; ++i)
-				{
-					_sites[i].dispose();
-				}
-				_sites.length = 0;
+				_sites.dispose();
 				_sites = null;
 			}
 			if (_triangles)
@@ -78,7 +73,7 @@ package com.nodename.Delaunay
 		
 		public function Voronoi(points:Vector.<Point>, colors:Vector.<uint>, plotBounds:Rectangle)
 		{
-			_sites = new Vector.<Site>();
+			_sites = new SiteList();
 			_siteMap = new Dictionary(true);
 			addSites(points, colors);
 			_plotBounds = plotBounds;
@@ -115,24 +110,9 @@ package com.nodename.Delaunay
 			return site.region(_plotBounds);
 		}
 
-		/**
-		 * 
-		 * @return the largest circle centered at each site that fits in its region;
-		 * if the region is infinite, return a circle of radius 0.
-		 * 
-		 */
 		public function circles():Vector.<Circle>
 		{
-			var circles:Vector.<Circle> = new Vector.<Circle>();
-			for each (var site:Site in _sites)
-			{
-				var radius:Number = 0;
-				var nearestEdge:Edge = site.nearestEdge();
-				
-				!nearestEdge.isPartOfConvexHull() && (radius = nearestEdge.sitesDistance()/2);
-				circles.push(new Circle(site.x, site.y, radius));
-			}
-			return circles;
+			return _sites.circles();
 		}
 		
 		public function voronoiBoundaryForSite(coord:Point):Vector.<LineSegment>
@@ -206,22 +186,12 @@ package com.nodename.Delaunay
 
 		public function regions():Vector.<Vector.<Point>>
 		{
-			var regions:Vector.<Vector.<Point>> = new Vector.<Vector.<Point>>();
-			for each (var site:Site in _sites)
-			{
-				regions.push(site.region(_plotBounds));
-			}
-			return regions;
+			return _sites.regions(_plotBounds);
 		}
 		
 		public function siteColors(referenceImage:BitmapData = null):Vector.<uint>
 		{
-			var colors:Vector.<uint> = new Vector.<uint>();
-			for each (var site:Site in _sites)
-			{
-				colors.push(referenceImage ? referenceImage.getPixel(site.x, site.y) : site.color);
-			}
-			return colors;
+			return _sites.siteColors(referenceImage);
 		}
 		
 		/**
@@ -234,22 +204,12 @@ package com.nodename.Delaunay
 		 */
 		public function nearestSitePoint(proximityMap:BitmapData, x:Number, y:Number):Point
 		{
-			var index:uint = proximityMap.getPixel(x, y);
-			if (index > _sites.length - 1)
-			{
-				return null;
-			}
-			return _sites[index].coord;
+			return _sites.nearestSitePoint(proximityMap, x, y);
 		}
 		
 		public function siteCoords():Vector.<Point>
 		{
-			var coords:Vector.<Point> = new Vector.<Point>();
-			for each (var site:Site in _sites)
-			{
-				coords.push(site.coord);
-			}
-			return coords;
+			return _sites.siteCoords();
 		}
 
 		private function fortunesAlgorithm():void
@@ -261,7 +221,7 @@ package com.nodename.Delaunay
 			var lbnd:Halfedge, rbnd:Halfedge, llbnd:Halfedge, rrbnd:Halfedge, bisector:Halfedge;
 			var edge:Edge;
 			
-			var dataBounds:Rectangle = getSitesBounds(Site.sortSites(_sites));
+			var dataBounds:Rectangle = _sites.getSitesBounds();
 			
 			var sqrt_nsites:int = int(Math.sqrt(_sites.length + 4));
 			var heap:HalfedgePriorityQueue = new HalfedgePriorityQueue(dataBounds.y, dataBounds.height, sqrt_nsites);
@@ -269,9 +229,8 @@ package com.nodename.Delaunay
 			var halfEdges:Vector.<Halfedge> = new Vector.<Halfedge>();
 			var vertices:Vector.<Vertex> = new Vector.<Vertex>();
 			
-			var siteIndex:int = 0;
-			var bottomMostSite:Site = nextSite();
-			newSite = nextSite();
+			var bottomMostSite:Site = _sites.next();
+			newSite = _sites.next();
 			
 			for (;;)
 			{
@@ -332,7 +291,7 @@ package com.nodename.Delaunay
 						heap.insert(bisector);	
 					}
 					
-					newSite = nextSite();	
+					newSite = _sites.next();	
 				}
 				else if (heap.empty() == false) 
 				{
@@ -408,47 +367,6 @@ package com.nodename.Delaunay
 				vertex.dispose();
 			}
 			vertices.length = 0;
-
-			
-			function nextSite():Site
-			{
-				if (siteIndex < _sites.length)
-				{
-					return _sites[siteIndex++];
-				}
-				else
-				{
-					return null;
-				}
-			}
-
-			// sites must be sorted before calling this function!
-			function getSitesBounds(sortedSites:Vector.<Site>):Rectangle
-			{
-				var xmin:Number, xmax:Number, ymin:Number, ymax:Number;
-				if (sortedSites.length == 0)
-				{
-					return new Rectangle(0, 0, 0, 0);
-				}
-				xmin = Number.MAX_VALUE;
-				xmax = Number.MIN_VALUE;
-				for each (var site:Site in sortedSites)
-				{
-					if (site.x < xmin)
-					{
-						xmin = site.x;
-					}
-					if (site.x > xmax)
-					{
-						xmax = site.x;
-					}
-				}
-				// here's where we assume that the sites have been sorted on y:
-				ymin = sortedSites[0].y;
-				ymax = sortedSites[sortedSites.length - 1].y;
-				
-				return new Rectangle(xmin, ymin, xmax - xmin, ymax - ymin);
-			}
 			
 			function leftRegion(he:Halfedge):Site
 			{
