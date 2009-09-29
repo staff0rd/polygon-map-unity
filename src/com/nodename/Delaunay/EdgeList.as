@@ -64,17 +64,17 @@ package com.nodename.Delaunay
 		}
 
 		/**
-		 * Insert newhe to the right of lb 
+		 * Insert newHalfedge to the right of lb 
 		 * @param lb
-		 * @param newhe
+		 * @param newHalfedge
 		 * 
 		 */
-		public function insert(lb:Halfedge, newhe:Halfedge):void
+		public function insert(lb:Halfedge, newHalfedge:Halfedge):void
 		{
-			newhe.edgeListLeftNeighbor = lb;
-			newhe.edgeListRightNeighbor = lb.edgeListRightNeighbor;
-			lb.edgeListRightNeighbor.edgeListLeftNeighbor = newhe;
-			lb.edgeListRightNeighbor = newhe;
+			newHalfedge.edgeListLeftNeighbor = lb;
+			newHalfedge.edgeListRightNeighbor = lb.edgeListRightNeighbor;
+			lb.edgeListRightNeighbor.edgeListLeftNeighbor = newHalfedge;
+			lb.edgeListRightNeighbor = newHalfedge;
 		}
 
 		/**

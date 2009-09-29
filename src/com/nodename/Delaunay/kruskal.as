@@ -29,7 +29,7 @@ package com.nodename.Delaunay
 		
 		for (var i:int = lineSegments.length; --i > -1;)
 		{
-			var lineSegment:LineSegment = lineSegments[i] as LineSegment;
+			var lineSegment:LineSegment = lineSegments[i];
 			
 			var node0:Node = nodes[lineSegment.p0];
 			var rootOfSet0:Node;
