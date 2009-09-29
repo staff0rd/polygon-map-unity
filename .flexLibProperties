@@ -17,6 +17,7 @@
     <classEntry path="com.nodename.Delaunay.selectEdgesForSitePoint"/>
     <classEntry path="com.nodename.Delaunay.selectNonIntersectingEdges"/>
     <classEntry path="com.nodename.Delaunay.visibleLineSegments"/>
+    <classEntry path="com.nodename.Delaunay.SiteList"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -19,16 +19,17 @@ package com.nodename.Delaunay
 			}
 		}
 		
-		internal static function sortSites(sites:Vector.<Site>):Vector.<Site>
+		internal static function sortSites(sites:Vector.<Site>):void
 		{
 			sites.sort(Site.compare);
-			return sites;
 		}
 
 		/**
 		 * sort sites on y, then x, coord
 		 * also change each site's _siteIndex to match its new position in the list
 		 * so the _siteIndex can be used to identify the site for nearest-neighbor queries
+		 * 
+		 * haha "also" - means more than one responsibility...
 		 * 
 		 */
 		private static function compare(s1:Site, s2:Site):Number
