@@ -28,6 +28,8 @@ package com.nodename.Delaunay
 		public var edge:Edge;
 		public var leftRight:LR;
 		public var vertex:Vertex;
+		
+		// the vertex's y-coordinate in the transformed Voronoi space V*
 		public var ystar:Number;
 
 		public function Halfedge(lock:Class, edge:Edge = null, lr:LR = null)
