@@ -1,9 +1,10 @@
 package com.nodename.Delaunay
 {
-	import __AS3__.vec.Vector;
+	import com.nodename.utils.IDisposable;
+	
 	import flash.geom.Point;
 	
-	internal final class EdgeList
+	internal final class EdgeList implements IDisposable
 	{
 		private var _deltax:Number;
 		private var _xmin:Number;
