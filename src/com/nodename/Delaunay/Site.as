@@ -8,7 +8,6 @@ package com.nodename.Delaunay
 		private static var _pool:Vector.<Site> = new Vector.<Site>();
 		public static function create(p:Point, index:int, weight:Number, color:uint):Site
 		{
-			var site:Site;
 			if (_pool.length > 0)
 			{
 				return _pool.pop().init(p, index, weight, color);
