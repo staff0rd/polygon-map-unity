@@ -268,7 +268,7 @@ package com.nodename.Delaunay
 		
 		public function toString():String
 		{
-			return "Edge " + _edgeIndex + "; sites " + _sites[LR.LEFT].siteIndex + ", " + _sites[LR.RIGHT].siteIndex
+			return "Edge " + _edgeIndex + "; sites " + _sites[LR.LEFT] + ", " + _sites[LR.RIGHT]
 					+ "; endVertices " + (_leftVertex ? _leftVertex.vertexIndex : "null") + ", "
 					 + (_rightVertex ? _rightVertex.vertexIndex : "null") + "::";
 		}
