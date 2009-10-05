@@ -173,8 +173,10 @@ package com.nodename.Delaunay
 		
 		private function reorderEdges():void
 		{
+			//trace("_edges:", _edges);
 			var reorderer:EdgeReorderer = new EdgeReorderer(_edges, Vertex);
 			_edges = reorderer.edges;
+			//trace("reordered:", _edges);
 			_edgeOrientations = reorderer.edgeOrientations;
 			reorderer.dispose();
 		}
@@ -209,14 +211,14 @@ package com.nodename.Delaunay
 				}
 				connect(points, j, bounds);
 			}
-			// close up the polygon:
+			// close up the polygon by adding another corner point of the bounds if needed:
 			connect(points, i, bounds, true);
 			return points;
 		}
 		
 		private function connect(points:Vector.<Point>, j:int, bounds:Rectangle, closingUp:Boolean = false):void
 		{
-			var rightPoint:Point = points[points.length - 1] as Point;
+			var rightPoint:Point = points[points.length - 1];
 			var newEdge:Edge = _edges[j] as Edge;
 			var newOrientation:LR = _edgeOrientations[j];
 			// the point that  must be connected to rightPoint:
@@ -233,6 +235,7 @@ package com.nodename.Delaunay
 					// (NOTE this will not be correct if the region should take up more than
 					// half of the bounds rect, for then we will have gone the wrong way
 					// around the bounds and included the smaller part rather than the larger)
+					// TODO check the clockwise/counterclockwise orientation of the polygon
 					var rightCheck:int = BoundsCheck.check(rightPoint, bounds);
 					var newCheck:int = BoundsCheck.check(newPoint, bounds);
 					var px:Number, py:Number;
@@ -352,7 +355,11 @@ package com.nodename.Delaunay
 				}
 				points.push(newPoint);
 			}
-			points.push(newEdge.clippedEnds[LR.other(newOrientation)]);
+			var newRightPoint:Point = newEdge.clippedEnds[LR.other(newOrientation)];
+			if (!closeEnough(points[0], newRightPoint))
+			{
+				points.push(newRightPoint);
+			}
 		}
 								
 		internal function get x():Number
