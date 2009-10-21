@@ -157,6 +157,38 @@ package com.nodename.Delaunay
 			return _edges[0];
 		}
 		
+		internal function neighborSites():Vector.<Site>
+		{
+			if (_edges == null || _edges.length == 0)
+			{
+				return new Vector.<Site>();
+			}
+			if (_edgeOrientations == null)
+			{ 
+				reorderEdges();
+			}
+			var list:Vector.<Site> = new Vector.<Site>();
+			var edge:Edge;
+			for each (edge in _edges)
+			{
+				list.push(neighborSite(edge));
+			}
+			return list;
+		}
+			
+		private function neighborSite(edge:Edge):Site
+		{
+			if (this == edge.leftSite)
+			{
+				return edge.rightSite;
+			}
+			if (this == edge.rightSite)
+			{
+				return edge.leftSite;
+			}
+			return null;
+		}
+		
 		internal function region(clippingBounds:Rectangle):Vector.<Point>
 		{
 			if (_edges == null || _edges.length == 0)
