@@ -104,9 +104,26 @@ package com.nodename.Delaunay
 			var site:Site = _sitesIndexedByLocation[p];
 			if (!site)
 			{
-				return null;
+				return new Vector.<Point>();
 			}
 			return site.region(_plotBounds);
+		}
+		
+		public function neighborSitesForSite(coord:Point):Vector.<Point>
+		{
+			var points:Vector.<Point> = new Vector.<Point>();
+			var site:Site = _sitesIndexedByLocation[coord];
+			if (!site)
+			{
+				return points;
+			}
+			var sites:Vector.<Site> = site.neighborSites();
+			var neighbor:Site;
+			for each (neighbor in sites)
+			{
+				points.push(neighbor.coord);
+			}
+			return points;
 		}
 
 		public function circles():Vector.<Circle>
