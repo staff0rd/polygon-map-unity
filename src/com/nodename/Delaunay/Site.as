@@ -1,5 +1,8 @@
 package com.nodename.Delaunay
 {
+	import com.nodename.geom.Polygon;
+	import com.nodename.geom.Winding;
+	
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
@@ -199,6 +202,10 @@ package com.nodename.Delaunay
 			{ 
 				reorderEdges();
 				_region = clipToBounds(clippingBounds);
+				if ((new Polygon(_region)).winding() == Winding.CLOCKWISE)
+				{
+					_region = _region.reverse();
+				}
 			}
 			return _region;
 		}
@@ -245,6 +252,7 @@ package com.nodename.Delaunay
 			}
 			// close up the polygon by adding another corner point of the bounds if needed:
 			connect(points, i, bounds, true);
+			
 			return points;
 		}
 		
@@ -267,7 +275,6 @@ package com.nodename.Delaunay
 					// (NOTE this will not be correct if the region should take up more than
 					// half of the bounds rect, for then we will have gone the wrong way
 					// around the bounds and included the smaller part rather than the larger)
-					// TODO check the clockwise/counterclockwise orientation of the polygon
 					var rightCheck:int = BoundsCheck.check(rightPoint, bounds);
 					var newCheck:int = BoundsCheck.check(newPoint, bounds);
 					var px:Number, py:Number;
