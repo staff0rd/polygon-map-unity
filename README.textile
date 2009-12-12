@@ -6,7 +6,7 @@ h3. Some Links
 
 * "Test Suite":http://github.com/nodename/as3delaunayTestRunner
 * "File a Bug":http://github.com/nodename/as3delaunay/issues
-* "Meet the Community":	http://groups.google.com/group/as3delaunay
+* "Meet the Community":http://groups.google.com/group/as3delaunay
 
 h3. MIT License
 
