@@ -1,6 +1,9 @@
 h1. as3delaunay
 
 as3delaunay is an open-source ActionScript 3 library for generating Delaunay triangulations, Voronoi diagrams, and related structures.
+as3delaunay is based on Steven Fortune's "C implementation":http://as3delaunay.googlegroups.com/web/FortuneCSource.zip of his "sweepline algorithm":http://as3delaunay.googlegroups.com/web/p313-fortune.pdf .
+
+This is release 1.0 af as3delaunay, September 28, 2009.
 
 h3. Some Links
 
