@@ -98,7 +98,12 @@ package com.nodename.Delaunay
 			_sites.push(site);
 			_sitesIndexedByLocation[p] = site;
 		}
-		
+
+                public function edges():Vector.<Edge>
+                {
+                	return _edges;
+                }
+          
 		public function region(p:Point):Vector.<Point>
 		{
 			var site:Site = _sitesIndexedByLocation[p];
@@ -108,7 +113,8 @@ package com.nodename.Delaunay
 			}
 			return site.region(_plotBounds);
 		}
-		
+
+          // TODO: bug: if you call this before you call region(), something goes wrong :(
 		public function neighborSitesForSite(coord:Point):Vector.<Point>
 		{
 			var points:Vector.<Point> = new Vector.<Point>();
