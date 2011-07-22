@@ -11,6 +11,12 @@ h3. Some Links
 * "File a Bug":http://github.com/nodename/as3delaunay/issues
 * "Meet the Community":http://groups.google.com/group/as3delaunay
 
+h3. as3delaunay in use
+
+* "The Living Glass Conversation":http://glassislife.com/jointheconversation.aspx
+* "Blobs in Games: Polygon Map Generation":http://simblob.blogspot.com/2010/09/polygon-map-generation-part-1.html
+* "Faster Voronoi Noise":http://www.lidev.com.ar/faster-voronoi-noise/
+
 h3. MIT License
 
 <pre>
