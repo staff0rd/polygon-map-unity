@@ -8,6 +8,7 @@ This is release 1.0 af as3delaunay, September 28, 2009.
 h3. Some Links
 
 * "Test Suite":http://github.com/nodename/as3delaunayTestRunner
+* "haXe Port by Stephane Ledorze":https://bitbucket.org/sledorze/hxdelaunay
 * "File a Bug":http://github.com/nodename/as3delaunay/issues
 * "Meet the Community":http://groups.google.com/group/as3delaunay
 
