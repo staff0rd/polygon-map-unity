@@ -17,7 +17,7 @@ package com.nodename.Delaunay
 	 * @author ashaw
 	 * 
 	 */
-	internal final class Edge
+	public final class Edge
 	{
 		private static var _pool:Vector.<Edge> = new Vector.<Edge>();
 
@@ -123,7 +123,14 @@ package com.nodename.Delaunay
 			// draw a line connecting the input Sites for which the edge is a bisector:
 			return new LineSegment(leftSite.coord, rightSite.coord);
 		}
-		
+
+                public function voronoiEdge():LineSegment
+                {
+                  if (!visible) return new LineSegment(null, null);
+                  return new LineSegment(_clippedVertices[LR.LEFT],
+                                         _clippedVertices[LR.RIGHT]);
+                }
+
 		private static var _nedges:int = 0;
 		
 		internal static const DELETED:Edge = new Edge(PrivateConstructorEnforcer);
