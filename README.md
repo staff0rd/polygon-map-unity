@@ -1,7 +1,9 @@
 Unity-Delaunay
 ==============
 
-Delaunay triangulations, Voronoi, convex hull and more. Ported to C# for use in the Unity game engine from https://github.com/nodename/as3delaunay.
+Voronoi diagrams, minimum spanning graphs, convex hull and more. Ported to C# for use in the Unity game engine from https://github.com/nodename/as3delaunay.
+
+![Example](screenshot.png)
 
 ### Features: ###
 
