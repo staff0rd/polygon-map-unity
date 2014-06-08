@@ -49,8 +49,8 @@ namespace Delaunay
 			_hash = new Halfedge[_hashsize];
 			
 			// two dummy Halfedges:
-			_leftEnd = Halfedge.createDummy ();
-			_rightEnd = Halfedge.createDummy ();
+			_leftEnd = Halfedge.CreateDummy ();
+			_rightEnd = Halfedge.CreateDummy ();
 			_leftEnd.edgeListLeftNeighbor = null;
 			_leftEnd.edgeListRightNeighbor = _rightEnd;
 			_rightEnd.edgeListLeftNeighbor = _leftEnd;
@@ -65,7 +65,7 @@ namespace Delaunay
 		 * @param newHalfedge
 		 * 
 		 */
-		public void insert (Halfedge lb, Halfedge newHalfedge)
+		public void Insert (Halfedge lb, Halfedge newHalfedge)
 		{
 			newHalfedge.edgeListLeftNeighbor = lb;
 			newHalfedge.edgeListRightNeighbor = lb.edgeListRightNeighbor;
@@ -79,7 +79,7 @@ namespace Delaunay
 		 * @param halfEdge
 		 * 
 		 */
-		public void remove (Halfedge halfEdge)
+		public void Remove (Halfedge halfEdge)
 		{
 			halfEdge.edgeListLeftNeighbor.edgeListRightNeighbor = halfEdge.edgeListRightNeighbor;
 			halfEdge.edgeListRightNeighbor.edgeListLeftNeighbor = halfEdge.edgeListLeftNeighbor;
@@ -93,7 +93,7 @@ namespace Delaunay
 		 * @return 
 		 * 
 		 */
-		public Halfedge edgeListLeftNeighbor (Vector2 p)
+		public Halfedge EdgeListLeftNeighbor (Vector2 p)
 		{
 			int i, bucket;
 			Halfedge halfEdge;
@@ -106,25 +106,25 @@ namespace Delaunay
 			if (bucket >= _hashsize) {
 				bucket = _hashsize - 1;
 			}
-			halfEdge = getHash (bucket);
+			halfEdge = GetHash (bucket);
 			if (halfEdge == null) {
 				for (i = 1; true; ++i) {
-					if ((halfEdge = getHash (bucket - i)) != null)
+					if ((halfEdge = GetHash (bucket - i)) != null)
 						break;
-					if ((halfEdge = getHash (bucket + i)) != null)
+					if ((halfEdge = GetHash (bucket + i)) != null)
 						break;
 				}
 			}
 			/* Now search linear list of halfedges for the correct one */
-			if (halfEdge == leftEnd || (halfEdge != rightEnd && halfEdge.isLeftOf (p))) {
+			if (halfEdge == leftEnd || (halfEdge != rightEnd && halfEdge.IsLeftOf (p))) {
 				do {
 					halfEdge = halfEdge.edgeListRightNeighbor;
-				} while (halfEdge != rightEnd && halfEdge.isLeftOf(p));
+				} while (halfEdge != rightEnd && halfEdge.IsLeftOf(p));
 				halfEdge = halfEdge.edgeListLeftNeighbor;
 			} else {
 				do {
 					halfEdge = halfEdge.edgeListLeftNeighbor;
-				} while (halfEdge != leftEnd && !halfEdge.isLeftOf(p));
+				} while (halfEdge != leftEnd && !halfEdge.IsLeftOf(p));
 			}
 		
 			/* Update hash table and reference counts */
@@ -135,7 +135,7 @@ namespace Delaunay
 		}
 
 		/* Get entry from hash table, pruning any deleted nodes */
-		private Halfedge getHash (int b)
+		private Halfedge GetHash (int b)
 		{
 			Halfedge halfEdge;
 		

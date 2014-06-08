@@ -21,7 +21,7 @@ namespace Delaunay
 			}
 		}
 		
-		public static Halfedge createDummy ()
+		public static Halfedge CreateDummy ()
 		{
 			return Create (null, null);
 		}
@@ -82,7 +82,7 @@ namespace Delaunay
 			_pool.Push (this);
 		}
 
-		internal bool isLeftOf (Vector2 p)
+		internal bool IsLeftOf (Vector2 p)
 		{
 			Site topSite;
 			bool rightOfSite, above, fast;

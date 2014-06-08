@@ -43,7 +43,7 @@ namespace Delaunay
 			get { return _sites.Count;}
 		}
 		
-		public Site next ()
+		public Site Next ()
 		{
 			if (_sorted == false) {
 				UnityEngine.Debug.LogError ("SiteList::next():  sites have not been sorted");
@@ -55,10 +55,10 @@ namespace Delaunay
 			}
 		}
 
-		internal Rect getSitesBounds ()
+		internal Rect GetSitesBounds ()
 		{
 			if (_sorted == false) {
-				Site.sortSites (_sites);
+				Site.SortSites (_sites);
 				_currentIndex = 0;
 				_sorted = true;
 			}
@@ -84,7 +84,7 @@ namespace Delaunay
 			return new Rect (xmin, ymin, xmax - xmin, ymax - ymin);
 		}
 
-		public List<uint> siteColors (/*BitmapData referenceImage = null*/)
+		public List<uint> SiteColors (/*BitmapData referenceImage = null*/)
 		{
 			List<uint> colors = new List<uint> ();
 			Site site;
@@ -95,13 +95,13 @@ namespace Delaunay
 			return colors;
 		}
 
-		public List<Vector2> siteCoords ()
+		public List<Vector2> SiteCoords ()
 		{
 			List<Vector2> coords = new List<Vector2> ();
 			Site site;
 			for (int i = 0; i<_sites.Count; i++) {
 				site = _sites [i];
-				coords.Add (site.coord);
+				coords.Add (site.Coord);
 			}
 			return coords;
 		}
@@ -112,7 +112,7 @@ namespace Delaunay
 		 * if the region is infinite, return a circle of radius 0.
 		 * 
 		 */
-		public List<Circle> circles ()
+		public List<Circle> Circles ()
 		{
 			List<Circle> circles = new List<Circle> ();
 			Site site;
@@ -129,7 +129,7 @@ namespace Delaunay
 			return circles;
 		}
 
-		public List<List<Vector2>> regions (Rect plotBounds)
+		public List<List<Vector2>> Regions (Rect plotBounds)
 		{
 			List<List<Vector2>> regions = new List<List<Vector2>> ();
 			Site site;
@@ -148,7 +148,7 @@ namespace Delaunay
 		 * @return coordinates of nearest Site to (x, y)
 		 * 
 		 */
-		public Nullable<Vector2> nearestSitePoint (/*proximityMap:BitmapData,*/float x, float y)
+		public Nullable<Vector2> NearestSitePoint (/*proximityMap:BitmapData,*/float x, float y)
 		{
 //			uint index = proximityMap.getPixel(x, y);
 //			if (index > _sites.length - 1)

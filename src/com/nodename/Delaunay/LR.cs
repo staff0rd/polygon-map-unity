@@ -10,7 +10,7 @@ namespace Delaunay
 
 		public class SideHelper
 		{
-			public static Side other (Side leftRight)
+			public static Side Other (Side leftRight)
 			{
 				return leftRight == Side.LEFT ? Side.RIGHT : Side.LEFT;
 			}

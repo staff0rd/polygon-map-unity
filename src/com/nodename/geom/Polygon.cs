@@ -19,16 +19,16 @@ namespace Delaunay
 				return Mathf.Abs (SignedDoubleArea () * 0.5f); // XXX: I'm a bit nervous about this; not sure what the * 0.5 is for, bithacking?
 			}
 
-			public Winding winding ()
+			public Winding Winding ()
 			{
 				float signedDoubleArea = SignedDoubleArea ();
 				if (signedDoubleArea < 0) {
-					return Winding.CLOCKWISE;
+					return Geo.Winding.CLOCKWISE;
 				}
 				if (signedDoubleArea > 0) {
-					return Winding.COUNTERCLOCKWISE;
+					return Geo.Winding.COUNTERCLOCKWISE;
 				}
-				return Winding.NONE;
+				return Geo.Winding.NONE;
 			}
 
 			private float SignedDoubleArea () // XXX: I'm a bit nervous about this because Actionscript represents everything as doubles, not floats

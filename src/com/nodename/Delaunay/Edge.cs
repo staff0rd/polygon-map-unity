@@ -34,7 +34,7 @@ namespace Delaunay
 			 * @return 
 			 * 
 			 */
-		public static Edge createBisectingEdge (Site site0, Site site1)
+		public static Edge CreateBisectingEdge (Site site0, Site site1)
 		{
 			float dx, dy, absdx, absdy;
 			float a, b, c;
@@ -124,13 +124,13 @@ namespace Delaunay
 		//			return bmp;
 		//			}
 
-		public LineSegment delaunayLine ()
+		public LineSegment DelaunayLine ()
 		{
 			// draw a line connecting the input Sites for which the edge is a bisector:
-			return new LineSegment (leftSite.coord, rightSite.coord);
+			return new LineSegment (leftSite.Coord, rightSite.Coord);
 		}
 
-		public LineSegment voronoiEdge ()
+		public LineSegment VoronoiEdge ()
 		{
 			if (!visible)
 				return new LineSegment (null, null);
@@ -155,11 +155,11 @@ namespace Delaunay
 		public Vertex rightVertex {
 			get { return _rightVertex;}
 		}
-		public Vertex vertex (Side leftRight)
+		public Vertex Vertex (Side leftRight)
 		{
 			return (leftRight == Side.LEFT) ? _leftVertex : _rightVertex;
 		}
-		public void setVertex (Side leftRight, Vertex v)
+		public void SetVertex (Side leftRight, Vertex v)
 		{
 			if (leftRight == Side.LEFT) {
 				_leftVertex = v;
@@ -175,7 +175,7 @@ namespace Delaunay
 			
 		public float SitesDistance ()
 		{
-			return Vector2.Distance (leftSite.coord, rightSite.coord);
+			return Vector2.Distance (leftSite.Coord, rightSite.Coord);
 		}
 			
 		public static int CompareSitesDistances_MAX (Edge edge0, Edge edge1)

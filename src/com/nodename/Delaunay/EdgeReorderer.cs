@@ -26,7 +26,7 @@ namespace Delaunay
 			_edges = new List<Edge> ();
 			_edgeOrientations = new List<Side> ();
 			if (origEdges.Count > 0) {
-				_edges = reorderEdges (origEdges, criterion);
+				_edges = ReorderEdges (origEdges, criterion);
 			}
 		}
 		
@@ -36,7 +36,7 @@ namespace Delaunay
 			_edgeOrientations = null;
 		}
 
-		private List<Edge> reorderEdges (List<Edge> origEdges, VertexOrSite criterion)
+		private List<Edge> ReorderEdges (List<Edge> origEdges, VertexOrSite criterion)
 		{
 			int i;
 			int n = origEdges.Count;

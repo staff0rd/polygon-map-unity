@@ -19,7 +19,7 @@ namespace Delaunay
 			}
 		}
 		
-		internal static void sortSites (List<Site> sites)
+		internal static void SortSites (List<Site> sites)
 		{
 //			sites.sort(Site.compare);
 			sites.Sort (); // XXX: Check if this works
@@ -37,7 +37,7 @@ namespace Delaunay
 		{
 			Site s2 = (Site)obj;
 
-			int returnValue = Voronoi.compareByYThenX (this, s2);
+			int returnValue = Voronoi.CompareByYThenX (this, s2);
 			
 			// swap _siteIndex values if necessary to match new ordering:
 			uint tempIndex;
@@ -61,13 +61,13 @@ namespace Delaunay
 
 
 		private static readonly float EPSILON = .005f;
-		private static bool closeEnough (Vector2 p0, Vector2 p1)
+		private static bool CloseEnough (Vector2 p0, Vector2 p1)
 		{
 			return Vector2.Distance (p0, p1) < EPSILON;
 		}
 				
 		private Vector2 _coord;
-		public Vector2 coord {
+		public Vector2 Coord {
 			get { return _coord;}
 		}
 		
@@ -108,7 +108,7 @@ namespace Delaunay
 		
 		public override string ToString ()
 		{
-			return "Site " + _siteIndex.ToString () + ": " + coord.ToString ();
+			return "Site " + _siteIndex.ToString () + ": " + Coord.ToString ();
 		}
 		
 		private void Move (Vector2 p)
@@ -226,26 +226,26 @@ namespace Delaunay
 			if (edge.clippedEnds [orientation] == null) {
 				Debug.LogError ("XXX: Null detected when there should be a Vector2!");
 			}
-			if (edge.clippedEnds [SideHelper.other (orientation)] == null) {
+			if (edge.clippedEnds [SideHelper.Other (orientation)] == null) {
 				Debug.LogError ("XXX: Null detected when there should be a Vector2!");
 			}
 			points.Add ((Vector2)edge.clippedEnds [orientation]);
-			points.Add ((Vector2)edge.clippedEnds [SideHelper.other (orientation)]);
+			points.Add ((Vector2)edge.clippedEnds [SideHelper.Other (orientation)]);
 			
 			for (int j = i + 1; j < n; ++j) {
 				edge = _edges [j];
 				if (edge.visible == false) {
 					continue;
 				}
-				connect (points, j, bounds);
+				Connect (points, j, bounds);
 			}
 			// close up the polygon by adding another corner point of the bounds if needed:
-			connect (points, i, bounds, true);
+			Connect (points, i, bounds, true);
 			
 			return points;
 		}
 		
-		private void connect (List<Vector2> points, int j, Rect bounds, bool closingUp = false)
+		private void Connect (List<Vector2> points, int j, Rect bounds, bool closingUp = false)
 		{
 			Vector2 rightPoint = points [points.Count - 1];
 			Edge newEdge = _edges [j] as Edge;
@@ -255,7 +255,7 @@ namespace Delaunay
 				Debug.LogError ("XXX: Null detected when there should be a Vector2!");
 			}
 			Vector2 newPoint = (Vector2)newEdge.clippedEnds [newOrientation];
-			if (!closeEnough (rightPoint, newPoint)) {
+			if (!CloseEnough (rightPoint, newPoint)) {
 				// The points do not coincide, so they must have been clipped at the bounds;
 				// see if they are on the same border of the bounds:
 				if (rightPoint.x != newPoint.x
@@ -265,8 +265,8 @@ namespace Delaunay
 					// (NOTE this will not be correct if the region should take up more than
 					// half of the bounds rect, for then we will have gone the wrong way
 					// around the bounds and included the smaller part rather than the larger)
-					int rightCheck = BoundsCheck.check (rightPoint, bounds);
-					int newCheck = BoundsCheck.check (newPoint, bounds);
+					int rightCheck = BoundsCheck.Check (rightPoint, bounds);
+					int newCheck = BoundsCheck.Check (newPoint, bounds);
 					float px, py;
 					if ((rightCheck & BoundsCheck.RIGHT) != 0) {
 						px = bounds.xMax;
@@ -344,11 +344,11 @@ namespace Delaunay
 				}
 				points.Add (newPoint);
 			}
-			if (newEdge.clippedEnds [SideHelper.other (newOrientation)] == null) {
+			if (newEdge.clippedEnds [SideHelper.Other (newOrientation)] == null) {
 				Debug.LogError ("XXX: Null detected when there should be a Vector2!");
 			}
-			Vector2 newRightPoint = (Vector2)newEdge.clippedEnds [SideHelper.other (newOrientation)];
-			if (!closeEnough (points [0], newRightPoint)) {
+			Vector2 newRightPoint = (Vector2)newEdge.clippedEnds [SideHelper.Other (newOrientation)];
+			if (!CloseEnough (points [0], newRightPoint)) {
 				points.Add (newRightPoint);
 			}
 		}
@@ -360,9 +360,9 @@ namespace Delaunay
 			get { return _coord.y;}
 		}
 		
-		public float dist (ICoord p)
+		public float Dist (ICoord p)
 		{
-			return Vector2.Distance (p.coord, this._coord);
+			return Vector2.Distance (p.Coord, this._coord);
 		}
 
 	}
@@ -387,7 +387,7 @@ static class BoundsCheck
 		 * @return an int with the appropriate bits set if the Point lies on the corresponding bounds lines
 		 * 
 		 */
-	public static int check (Vector2 point, Rect bounds)
+	public static int Check (Vector2 point, Rect bounds)
 	{
 		int value = 0;
 		if (point.x == bounds.xMin) {

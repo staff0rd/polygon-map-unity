@@ -5,7 +5,7 @@ namespace Delaunay
 	
 	public interface ICoord
 	{
-		Vector2 coord {
+		Vector2 Coord {
 			get;
 		}
 	}

@@ -42,15 +42,15 @@ namespace Delaunay
 			_hash = new Halfedge[_hashsize];
 			// dummy Halfedge at the top of each hash
 			for (i = 0; i < _hashsize; ++i) {
-				_hash [i] = Halfedge.createDummy ();
+				_hash [i] = Halfedge.CreateDummy ();
 				_hash [i].nextInPriorityQueue = null;
 			}
 		}
 
-		public void insert (Halfedge halfEdge)
+		public void Insert (Halfedge halfEdge)
 		{
 			Halfedge previous, next;
-			int insertionBucket = bucket (halfEdge);
+			int insertionBucket = Bucket (halfEdge);
 			if (insertionBucket < _minBucket) {
 				_minBucket = insertionBucket;
 			}
@@ -64,10 +64,10 @@ namespace Delaunay
 			++_count;
 		}
 
-		public void remove (Halfedge halfEdge)
+		public void Remove (Halfedge halfEdge)
 		{
 			Halfedge previous;
-			int removalBucket = bucket (halfEdge);
+			int removalBucket = Bucket (halfEdge);
 			
 			if (halfEdge.vertex != null) {
 				previous = _hash [removalBucket];
@@ -82,7 +82,7 @@ namespace Delaunay
 			}
 		}
 
-		private int bucket (Halfedge halfEdge)
+		private int Bucket (Halfedge halfEdge)
 		{
 			int theBucket = (int)((halfEdge.ystar - _ymin) / _deltay * _hashsize);
 			if (theBucket < 0)
@@ -92,7 +92,7 @@ namespace Delaunay
 			return theBucket;
 		}
 		
-		private bool isEmpty (int bucket)
+		private bool IsEmpty (int bucket)
 		{
 			return (_hash [bucket].nextInPriorityQueue == null);
 		}
@@ -101,14 +101,14 @@ namespace Delaunay
 		 * move _minBucket until it contains an actual Halfedge (not just the dummy at the top); 
 		 * 
 		 */
-		private void adjustMinBucket ()
+		private void AdjustMinBucket ()
 		{
-			while (_minBucket < _hashsize - 1 && isEmpty(_minBucket)) {
+			while (_minBucket < _hashsize - 1 && IsEmpty(_minBucket)) {
 				++_minBucket;
 			}
 		}
 
-		public bool empty ()
+		public bool Empty ()
 		{
 			return _count == 0;
 		}
@@ -117,9 +117,9 @@ namespace Delaunay
 		 * @return coordinates of the Halfedge's vertex in V*, the transformed Voronoi diagram
 		 * 
 		 */
-		public Vector2 min ()
+		public Vector2 Min ()
 		{
-			adjustMinBucket ();
+			AdjustMinBucket ();
 			Halfedge answer = _hash [_minBucket].nextInPriorityQueue;
 			return new Vector2 (answer.vertex.x, answer.ystar);
 		}
@@ -129,7 +129,7 @@ namespace Delaunay
 		 * @return 
 		 * 
 		 */
-		public Halfedge extractMin ()
+		public Halfedge ExtractMin ()
 		{
 			Halfedge answer;
 		

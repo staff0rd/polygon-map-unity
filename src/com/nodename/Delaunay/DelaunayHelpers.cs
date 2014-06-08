@@ -23,7 +23,7 @@ namespace Delaunay
 
 	public static class DelaunayHelpers
 	{
-		public static List<LineSegment> visibleLineSegments (List<Edge> edges)
+		public static List<LineSegment> VisibleLineSegments (List<Edge> edges)
 		{
 			List<LineSegment> segments = new List<LineSegment> ();
 			
@@ -39,15 +39,15 @@ namespace Delaunay
 			return segments;
 		}
 
-		public static List<Edge> selectEdgesForSitePoint (Vector2 coord, List<Edge> edgesToTest)
+		public static List<Edge> SelectEdgesForSitePoint (Vector2 coord, List<Edge> edgesToTest)
 		{
 			return edgesToTest.FindAll (delegate (Edge edge) {
-				return ((edge.leftSite != null && edge.leftSite.coord == coord)
-					|| (edge.rightSite != null && edge.rightSite.coord == coord));
+				return ((edge.leftSite != null && edge.leftSite.Coord == coord)
+					|| (edge.rightSite != null && edge.rightSite.Coord == coord));
 			});
 		}
 
-		public static List<Edge> selectNonIntersectingEdges (/*keepOutMask:BitmapData,*/List<Edge> edgesToTest)
+		public static List<Edge> SelectNonIntersectingEdges (/*keepOutMask:BitmapData,*/List<Edge> edgesToTest)
 		{
 //			if (keepOutMask == null)
 //			{
@@ -66,13 +66,13 @@ namespace Delaunay
 //			}
 		}
 
-		public static List<LineSegment> delaunayLinesForEdges (List<Edge> edges)
+		public static List<LineSegment> DelaunayLinesForEdges (List<Edge> edges)
 		{
 			List<LineSegment> segments = new List<LineSegment> ();
 			Edge edge;
 			for (int i = 0; i < edges.Count; i++) {
 				edge = edges [i];
-				segments.Add (edge.delaunayLine ());
+				segments.Add (edge.DelaunayLine ());
 			}
 			return segments;
 		}
@@ -82,7 +82,7 @@ namespace Delaunay
 		 * Skiena: The Algorithm Design Manual, p. 196ff
 		 * Note: the sites are implied: they consist of the end points of the line segments
 		*/
-		public static List<LineSegment> kruskal (List<LineSegment> lineSegments, KruskalType type = KruskalType.MINIMUM)
+		public static List<LineSegment> Kruskal (List<LineSegment> lineSegments, KruskalType type = KruskalType.MINIMUM)
 		{
 			Dictionary<Nullable<Vector2>,Node> nodes = new Dictionary<Nullable<Vector2>,Node> ();
 			List<LineSegment> mst = new List<LineSegment> ();
@@ -117,7 +117,7 @@ namespace Delaunay
 					nodes [lineSegment.p0] = node0;
 				} else {
 					node0 = nodes [lineSegment.p0];
-					rootOfSet0 = find (node0);
+					rootOfSet0 = Find (node0);
 				}
 				
 				Node node1 = null;
@@ -131,7 +131,7 @@ namespace Delaunay
 					nodes [lineSegment.p1] = node1;
 				} else {
 					node1 = nodes [lineSegment.p1];
-					rootOfSet1 = find (node1);
+					rootOfSet1 = Find (node1);
 				}
 				
 				if (rootOfSet0 != rootOfSet1) {	// nodes not in same set
@@ -158,12 +158,12 @@ namespace Delaunay
 			return mst;
 		}
 
-		private static Node find (Node node)
+		private static Node Find (Node node)
 		{
 			if (node.parent == node) {
 				return node;
 			} else {
-				Node root = find (node.parent);
+				Node root = Find (node.parent);
 				// this line is just to speed up subsequent finds by keeping the tree depth low:
 				node.parent = root;
 				return root;

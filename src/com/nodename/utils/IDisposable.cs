@@ -1,9 +1,10 @@
 namespace Delaunay
 {
-	namespace Utils {
+	namespace Utils
+	{
 		public interface IDisposable
 		{
-			void dispose();
+			void Dispose ();
 		}
 	}
 }

@@ -27,7 +27,7 @@ namespace Delaunay
 		private static int _nvertices = 0;
 		
 		private Vector2 _coord;
-		public Vector2 coord {
+		public Vector2 Coord {
 			get { return _coord;}
 		}
 		private int _vertexIndex;
@@ -94,7 +94,7 @@ namespace Delaunay
 			intersectionX = (edge0.c * edge1.b - edge1.c * edge0.b) / determinant;
 			intersectionY = (edge1.c * edge0.a - edge0.c * edge1.a) / determinant;
 		
-			if (Voronoi.compareByYThenX (edge0.rightSite, edge1.rightSite) < 0) {
+			if (Voronoi.CompareByYThenX (edge0.rightSite, edge1.rightSite) < 0) {
 				halfedge = halfedge0;
 				edge = edge0;
 			} else {

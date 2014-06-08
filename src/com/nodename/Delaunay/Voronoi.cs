@@ -67,22 +67,22 @@ namespace Delaunay
 		{
 			_sites = new SiteList ();
 			_sitesIndexedByLocation = new Dictionary <Vector2,Site> (); // XXX: Used to be Dictionary(true) -- weak refs. 
-			addSites (points, colors);
+			AddSites (points, colors);
 			_plotBounds = plotBounds;
 			_triangles = new List<Triangle> ();
 			_edges = new List<Edge> ();
-			fortunesAlgorithm ();
+			FortunesAlgorithm ();
 		}
 		
-		private void addSites (List<Vector2> points, List<uint> colors)
+		private void AddSites (List<Vector2> points, List<uint> colors)
 		{
 			int length = points.Count;
 			for (int i = 0; i < length; ++i) {
-				addSite (points [i], (colors != null) ? colors [i] : 0, i);
+				AddSite (points [i], (colors != null) ? colors [i] : 0, i);
 			}
 		}
 		
-		private void addSite (Vector2 p, uint color, int index)
+		private void AddSite (Vector2 p, uint color, int index)
 		{
 			if (_sitesIndexedByLocation.ContainsKey (p))
 				return; // Prevent duplicate site! (Adapted from https://github.com/nodename/as3delaunay/issues/1)
@@ -92,12 +92,12 @@ namespace Delaunay
 			_sitesIndexedByLocation [p] = site;
 		}
 
-		public List<Edge> edges ()
+		public List<Edge> Edges ()
 		{
 			return _edges;
 		}
           
-		public List<Vector2> region (Vector2 p)
+		public List<Vector2> Region (Vector2 p)
 		{
 			Site site = _sitesIndexedByLocation [p];
 			if (site == null) {
@@ -107,7 +107,7 @@ namespace Delaunay
 		}
 
 		// TODO: bug: if you call this before you call region(), something goes wrong :(
-		public List<Vector2> neighborSitesForSite (Vector2 coord)
+		public List<Vector2> NeighborSitesForSite (Vector2 coord)
 		{
 			List<Vector2> points = new List<Vector2> ();
 			Site site = _sitesIndexedByLocation [coord];
@@ -118,39 +118,39 @@ namespace Delaunay
 			Site neighbor;
 			for (int nIndex =0; nIndex<sites.Count; nIndex++) {
 				neighbor = sites [nIndex];
-				points.Add (neighbor.coord);
+				points.Add (neighbor.Coord);
 			}
 			return points;
 		}
 
-		public List<Circle> circles ()
+		public List<Circle> Circles ()
 		{
-			return _sites.circles ();
+			return _sites.Circles ();
 		}
 		
-		public List<LineSegment> voronoiBoundaryForSite (Vector2 coord)
+		public List<LineSegment> VoronoiBoundaryForSite (Vector2 coord)
 		{
-			return DelaunayHelpers.visibleLineSegments (DelaunayHelpers.selectEdgesForSitePoint (coord, _edges));
+			return DelaunayHelpers.VisibleLineSegments (DelaunayHelpers.SelectEdgesForSitePoint (coord, _edges));
 		}
 
-		public List<LineSegment> delaunayLinesForSite (Vector2 coord)
+		public List<LineSegment> DelaunayLinesForSite (Vector2 coord)
 		{
-			return DelaunayHelpers.delaunayLinesForEdges (DelaunayHelpers.selectEdgesForSitePoint (coord, _edges));
+			return DelaunayHelpers.DelaunayLinesForEdges (DelaunayHelpers.SelectEdgesForSitePoint (coord, _edges));
 		}
 		
-		public List<LineSegment> voronoiDiagram ()
+		public List<LineSegment> VoronoiDiagram ()
 		{
-			return DelaunayHelpers.visibleLineSegments (_edges);
+			return DelaunayHelpers.VisibleLineSegments (_edges);
 		}
 		
-		public List<LineSegment> delaunayTriangulation (/*BitmapData keepOutMask = null*/)
+		public List<LineSegment> DelaunayTriangulation (/*BitmapData keepOutMask = null*/)
 		{
-			return DelaunayHelpers.delaunayLinesForEdges (DelaunayHelpers.selectNonIntersectingEdges (/*keepOutMask,*/_edges));
+			return DelaunayHelpers.DelaunayLinesForEdges (DelaunayHelpers.SelectNonIntersectingEdges (/*keepOutMask,*/_edges));
 		}
 		
-		public List<LineSegment> hull ()
+		public List<LineSegment> Hull ()
 		{
-			return DelaunayHelpers.delaunayLinesForEdges (HullEdges ());
+			return DelaunayHelpers.DelaunayLinesForEdges (HullEdges ());
 		}
 		
 		private List<Edge> HullEdges ()
@@ -160,7 +160,7 @@ namespace Delaunay
 			});
 		}
 
-		public List<Vector2> hullPointsInOrder ()
+		public List<Vector2> HullPointsInOrder ()
 		{
 			List<Edge> hullEdges = HullEdges ();
 			
@@ -180,26 +180,26 @@ namespace Delaunay
 			for (int i = 0; i < n; ++i) {
 				Edge edge = hullEdges [i];
 				orientation = orientations [i];
-				points.Add (edge.Site (orientation).coord);
+				points.Add (edge.Site (orientation).Coord);
 			}
 			return points;
 		}
 		
-		public List<LineSegment> spanningTree (KruskalType type = KruskalType.MINIMUM/*, BitmapData keepOutMask = null*/)
+		public List<LineSegment> SpanningTree (KruskalType type = KruskalType.MINIMUM/*, BitmapData keepOutMask = null*/)
 		{
-			List<Edge> edges = DelaunayHelpers.selectNonIntersectingEdges (/*keepOutMask,*/_edges);
-			List<LineSegment> segments = DelaunayHelpers.delaunayLinesForEdges (edges);
-			return DelaunayHelpers.kruskal (segments, type);
+			List<Edge> edges = DelaunayHelpers.SelectNonIntersectingEdges (/*keepOutMask,*/_edges);
+			List<LineSegment> segments = DelaunayHelpers.DelaunayLinesForEdges (edges);
+			return DelaunayHelpers.Kruskal (segments, type);
 		}
 
-		public List<List<Vector2>> regions ()
+		public List<List<Vector2>> Regions ()
 		{
-			return _sites.regions (_plotBounds);
+			return _sites.Regions (_plotBounds);
 		}
 		
-		public List<uint> siteColors (/*BitmapData referenceImage = null*/)
+		public List<uint> SiteColors (/*BitmapData referenceImage = null*/)
 		{
-			return _sites.siteColors (/*referenceImage*/);
+			return _sites.SiteColors (/*referenceImage*/);
 		}
 		
 		/**
@@ -210,18 +210,18 @@ namespace Delaunay
 		 * @return coordinates of nearest Site to (x, y)
 		 * 
 		 */
-		public Nullable<Vector2> nearestSitePoint (/*BitmapData proximityMap,*/float x, float y)
+		public Nullable<Vector2> NearestSitePoint (/*BitmapData proximityMap,*/float x, float y)
 		{
-			return _sites.nearestSitePoint (/*proximityMap,*/x, y);
+			return _sites.NearestSitePoint (/*proximityMap,*/x, y);
 		}
 		
-		public List<Vector2> siteCoords ()
+		public List<Vector2> SiteCoords ()
 		{
-			return _sites.siteCoords ();
+			return _sites.SiteCoords ();
 		}
 
 		private Site fortunesAlgorithm_bottomMostSite;
-		private void fortunesAlgorithm ()
+		private void FortunesAlgorithm ()
 		{
 			Site newSite, bottomSite, topSite, tempSite;
 			Vertex v, vertex;
@@ -230,7 +230,7 @@ namespace Delaunay
 			Halfedge lbnd, rbnd, llbnd, rrbnd, bisector;
 			Edge edge;
 			
-			Rect dataBounds = _sites.getSitesBounds ();
+			Rect dataBounds = _sites.GetSitesBounds ();
 			
 			int sqrt_nsites = (int)(Mathf.Sqrt (_sites.Count + 4));
 			HalfedgePriorityQueue heap = new HalfedgePriorityQueue (dataBounds.y, dataBounds.height, sqrt_nsites);
@@ -238,30 +238,30 @@ namespace Delaunay
 			List<Halfedge> halfEdges = new List<Halfedge> ();
 			List<Vertex> vertices = new List<Vertex> ();
 			
-			fortunesAlgorithm_bottomMostSite = _sites.next ();
-			newSite = _sites.next ();
+			fortunesAlgorithm_bottomMostSite = _sites.Next ();
+			newSite = _sites.Next ();
 			
 			for (;;) {
-				if (heap.empty () == false) {
-					newintstar = heap.min ();
+				if (heap.Empty () == false) {
+					newintstar = heap.Min ();
 				}
 			
 				if (newSite != null 
-					&& (heap.empty () || compareByYThenX (newSite, newintstar) < 0)) {
+					&& (heap.Empty () || CompareByYThenX (newSite, newintstar) < 0)) {
 					/* new site is smallest */
 					//trace("smallest: new site " + newSite);
 					
 					// Step 8:
-					lbnd = edgeList.edgeListLeftNeighbor (newSite.coord);	// the Halfedge just to the left of newSite
+					lbnd = edgeList.EdgeListLeftNeighbor (newSite.Coord);	// the Halfedge just to the left of newSite
 					//trace("lbnd: " + lbnd);
 					rbnd = lbnd.edgeListRightNeighbor;		// the Halfedge just to the right
 					//trace("rbnd: " + rbnd);
-					bottomSite = fortunesAlgorithm_rightRegion (lbnd);		// this is the same as leftRegion(rbnd)
+					bottomSite = FortunesAlgorithm_rightRegion (lbnd);		// this is the same as leftRegion(rbnd)
 					// this Site determines the region containing the new site
 					//trace("new Site is in region of existing site: " + bottomSite);
 					
 					// Step 9:
-					edge = Edge.createBisectingEdge (bottomSite, newSite);
+					edge = Edge.CreateBisectingEdge (bottomSite, newSite);
 					//trace("new edge: " + edge);
 					_edges.Add (edge);
 					
@@ -269,15 +269,15 @@ namespace Delaunay
 					halfEdges.Add (bisector);
 					// inserting two Halfedges into edgeList constitutes Step 10:
 					// insert bisector to the right of lbnd:
-					edgeList.insert (lbnd, bisector);
+					edgeList.Insert (lbnd, bisector);
 					
 					// first half of Step 11:
 					if ((vertex = Vertex.Intersect (lbnd, bisector)) != null) {
 						vertices.Add (vertex);
-						heap.remove (lbnd);
+						heap.Remove (lbnd);
 						lbnd.vertex = vertex;
-						lbnd.ystar = vertex.y + newSite.dist (vertex);
-						heap.insert (lbnd);
+						lbnd.ystar = vertex.y + newSite.Dist (vertex);
+						heap.Insert (lbnd);
 					}
 					
 					lbnd = bisector;
@@ -285,42 +285,36 @@ namespace Delaunay
 					halfEdges.Add (bisector);
 					// second Halfedge for Step 10:
 					// insert bisector to the right of lbnd:
-					edgeList.insert (lbnd, bisector);
+					edgeList.Insert (lbnd, bisector);
 					
 					// second half of Step 11:
 					if ((vertex = Vertex.Intersect (bisector, rbnd)) != null) {
 						vertices.Add (vertex);
 						bisector.vertex = vertex;
-						bisector.ystar = vertex.y + newSite.dist (vertex);
-						heap.insert (bisector);	
+						bisector.ystar = vertex.y + newSite.Dist (vertex);
+						heap.Insert (bisector);	
 					}
 					
-					newSite = _sites.next ();	
-				} else if (heap.empty () == false) {
+					newSite = _sites.Next ();	
+				} else if (heap.Empty () == false) {
 					/* intersection is smallest */
-					lbnd = heap.extractMin ();
+					lbnd = heap.ExtractMin ();
 					llbnd = lbnd.edgeListLeftNeighbor;
 					rbnd = lbnd.edgeListRightNeighbor;
 					rrbnd = rbnd.edgeListRightNeighbor;
-					bottomSite = fortunesAlgorithm_leftRegion (lbnd);
-					topSite = fortunesAlgorithm_rightRegion (rbnd);
+					bottomSite = FortunesAlgorithm_leftRegion (lbnd);
+					topSite = FortunesAlgorithm_rightRegion (rbnd);
 					// these three sites define a Delaunay triangle
 					// (not actually using these for anything...)
 					//_triangles.push(new Triangle(bottomSite, topSite, rightRegion(lbnd)));
 					
 					v = lbnd.vertex;
 					v.SetIndex ();
-					if (lbnd.leftRight == null) {
-						Debug.LogError ("XXX: lbnd.leftRight is null but expected Side. Should make Nullable.");
-					}
-					if (rbnd.leftRight == null) {
-						Debug.LogError ("XXX: rbnd.leftRight is null but expected Side. Should make Nullable.");
-					}
-					lbnd.edge.setVertex ((Side)lbnd.leftRight, v);
-					rbnd.edge.setVertex ((Side)rbnd.leftRight, v);
-					edgeList.remove (lbnd); 
-					heap.remove (rbnd);
-					edgeList.remove (rbnd); 
+					lbnd.edge.SetVertex ((Side)lbnd.leftRight, v);
+					rbnd.edge.SetVertex ((Side)rbnd.leftRight, v);
+					edgeList.Remove (lbnd); 
+					heap.Remove (rbnd);
+					edgeList.Remove (rbnd); 
 					leftRight = Side.LEFT;
 					if (bottomSite.y > topSite.y) {
 						tempSite = bottomSite;
@@ -328,24 +322,24 @@ namespace Delaunay
 						topSite = tempSite;
 						leftRight = Side.RIGHT;
 					}
-					edge = Edge.createBisectingEdge (bottomSite, topSite);
+					edge = Edge.CreateBisectingEdge (bottomSite, topSite);
 					_edges.Add (edge);
 					bisector = Halfedge.Create (edge, leftRight);
 					halfEdges.Add (bisector);
-					edgeList.insert (llbnd, bisector);
-					edge.setVertex (SideHelper.other (leftRight), v);
+					edgeList.Insert (llbnd, bisector);
+					edge.SetVertex (SideHelper.Other (leftRight), v);
 					if ((vertex = Vertex.Intersect (llbnd, bisector)) != null) {
 						vertices.Add (vertex);
-						heap.remove (llbnd);
+						heap.Remove (llbnd);
 						llbnd.vertex = vertex;
-						llbnd.ystar = vertex.y + bottomSite.dist (vertex);
-						heap.insert (llbnd);
+						llbnd.ystar = vertex.y + bottomSite.Dist (vertex);
+						heap.Insert (llbnd);
 					}
 					if ((vertex = Vertex.Intersect (bisector, rrbnd)) != null) {
 						vertices.Add (vertex);
 						bisector.vertex = vertex;
-						bisector.ystar = vertex.y + bottomSite.dist (vertex);
-						heap.insert (bisector);
+						bisector.ystar = vertex.y + bottomSite.Dist (vertex);
+						heap.Insert (bisector);
 					}
 				} else {
 					break;
@@ -375,28 +369,25 @@ namespace Delaunay
 			vertices.Clear ();
 		}
 
-		private Site fortunesAlgorithm_leftRegion (Halfedge he)
+		private Site FortunesAlgorithm_leftRegion (Halfedge he)
 		{
 			Edge edge = he.edge;
 			if (edge == null) {
 				return fortunesAlgorithm_bottomMostSite;
-			}
-			if (he.leftRight == null) {
-				Debug.LogError ("XXX: he.leftRight was null but expected Side. Should make Nullable");
 			}
 			return edge.Site ((Side)he.leftRight);
 		}
 		
-		private Site fortunesAlgorithm_rightRegion (Halfedge he)
+		private Site FortunesAlgorithm_rightRegion (Halfedge he)
 		{
 			Edge edge = he.edge;
 			if (edge == null) {
 				return fortunesAlgorithm_bottomMostSite;
 			}
-			return edge.Site (SideHelper.other ((Side)he.leftRight));
+			return edge.Site (SideHelper.Other ((Side)he.leftRight));
 		}
 
-		public static int compareByYThenX (Site s1, Site s2) // TODO: Fix this (previously s2:*)
+		public static int CompareByYThenX (Site s1, Site s2)
 		{
 			if (s1.y < s2.y)
 				return -1;
@@ -409,7 +400,7 @@ namespace Delaunay
 			return 0;
 		}
 
-		public static int compareByYThenX (Site s1, Vector2 s2) // TODO: Fix this (previously s2:*)
+		public static int CompareByYThenX (Site s1, Vector2 s2)
 		{
 			if (s1.y < s2.y)
 				return -1;
