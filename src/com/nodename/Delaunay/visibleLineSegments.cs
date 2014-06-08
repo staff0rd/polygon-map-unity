@@ -1,24 +1,27 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
-using Delaunay.Geom;
+using Delaunay.Geo;
+using Delaunay.LR;
 
 namespace Delaunay
 {	
-	List<LineSegment> visibleLineSegments(List<Edge> edges)
+	public static class DelaunayHelpers
 	{
-		List<LineSegment> segments = new List<LineSegment>();
-	
-		for (int i = 0; i<edges.Count; i++)
+		public static List<LineSegment> visibleLineSegments (List<Edge> edges)
 		{
-			Edge edge = edges[i];
-			if (edge.visible)
-			{
-				Vector2 p1 = edge.clippedEnds[LR.LEFT];
-				Vector2 p2 = edge.clippedEnds[LR.RIGHT];
-				segments.Add(new LineSegment(p1, p2));
+			List<LineSegment> segments = new List<LineSegment> ();
+			
+			for (int i = 0; i<edges.Count; i++) {
+				Edge edge = edges [i];
+				if (edge.visible) {
+					Nullable<Vector2> p1 = edge.clippedEnds [Side.LEFT];
+					Nullable<Vector2> p2 = edge.clippedEnds [Side.RIGHT];
+					segments.Add (new LineSegment (p1, p2));
+				}
 			}
+			
+			return segments;
 		}
-		
-		return segments;
 	}
 }

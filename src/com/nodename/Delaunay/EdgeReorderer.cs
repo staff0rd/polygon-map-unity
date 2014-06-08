@@ -1,4 +1,4 @@
-package com.nodename.Delaunay
+namespace Delaunay
 {
 	
 	
