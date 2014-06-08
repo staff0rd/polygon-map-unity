@@ -12,208 +12,192 @@
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
 
+using UnityEngine;
+using System;
+using System.Collections.Generic;
+using Delaunay.Geo;
+using Delaunay.Utils;
+using Delaunay.LR;
 
-package com.nodename.Delaunay
+namespace Delaunay
 {
-	import com.nodename.geom.Circle;
-	import com.nodename.geom.LineSegment;
-	
-	import flash.display.BitmapData;
-	import flash.geom.Point;
-	import flash.geom.Rectangle;
-	import flash.utils.Dictionary;
-	
-	public final class Voronoi
+	public sealed class Voronoi: Utils.IDisposable
 	{
-		private var _sites:SiteList;
-		private var _sitesIndexedByLocation:Dictionary;
-		private var _triangles:Vector.<Triangle>;
-		private var _edges:Vector.<Edge>;
+		private SiteList _sites;
+		private Dictionary <Vector2,Site> _sitesIndexedByLocation;
+		private List<Triangle> _triangles;
+		private List<Edge> _edges;
 
 		
 		// TODO generalize this so it doesn't have to be a rectangle;
 		// then we can make the fractal voronois-within-voronois
-		private var _plotBounds:Rectangle;
-		public function get plotBounds():Rectangle
-		{
-			return _plotBounds;
+		private Rect _plotBounds;
+		public Rect plotBounds {
+			get { return _plotBounds;}
 		}
 		
-		public function dispose():void
+		public void Dispose ()
 		{
-			var i:int, n:int;
-			if (_sites)
-			{
-				_sites.dispose();
+			int i, n;
+			if (_sites != null) {
+				_sites.Dispose ();
 				_sites = null;
 			}
-			if (_triangles)
-			{
-				n = _triangles.length;
-				for (i = 0; i < n; ++i)
-				{
-					_triangles[i].dispose();
+			if (_triangles != null) {
+				n = _triangles.Count;
+				for (i = 0; i < n; ++i) {
+					_triangles [i].Dispose ();
 				}
-				_triangles.length = 0;
+				_triangles.Clear ();
 				_triangles = null;
 			}
-			if (_edges)
-			{
-				n = _edges.length;
-				for (i = 0; i < n; ++i)
-				{
-					_edges[i].dispose();
+			if (_edges != null) {
+				n = _edges.Count;
+				for (i = 0; i < n; ++i) {
+					_edges [i].Dispose ();
 				}
-				_edges.length = 0;
+				_edges.Clear ();
 				_edges = null;
 			}
-			_plotBounds = null;
+//			_plotBounds = null;
 			_sitesIndexedByLocation = null;
 		}
 		
-		public function Voronoi(points:Vector.<Point>, colors:Vector.<uint>, plotBounds:Rectangle)
+		public Voronoi (List<Vector2> points, List<uint> colors, Rect plotBounds)
 		{
-			_sites = new SiteList();
-			_sitesIndexedByLocation = new Dictionary(true);
-			addSites(points, colors);
+			_sites = new SiteList ();
+			_sitesIndexedByLocation = new Dictionary <Vector2,Site> (); // XXX: Used to be Dictionary(true) -- weak refs. 
+			addSites (points, colors);
 			_plotBounds = plotBounds;
-			_triangles = new Vector.<Triangle>();
-			_edges = new Vector.<Edge>();
-			fortunesAlgorithm();
+			_triangles = new List<Triangle> ();
+			_edges = new List<Edge> ();
+			fortunesAlgorithm ();
 		}
 		
-		private function addSites(points:Vector.<Point>, colors:Vector.<uint>):void
+		private void addSites (List<Vector2> points, List<uint> colors)
 		{
-			var length:uint = points.length;
-			for (var i:uint = 0; i < length; ++i)
-			{
-				addSite(points[i], colors ? colors[i] : 0, i);
+			int length = points.Count;
+			for (int i = 0; i < length; ++i) {
+				addSite (points [i], (colors != null) ? colors [i] : 0, i);
 			}
 		}
 		
-		private function addSite(p:Point, color:uint, index:int):void
+		private void addSite (Vector2 p, uint color, int index)
 		{
-			var weight:Number = Math.random() * 100;
-			var site:Site = Site.create(p, index, weight, color);
-			_sites.push(site);
-			_sitesIndexedByLocation[p] = site;
+			float weight = UnityEngine.Random.value * 100f;
+			Site site = Site.Create (p, (uint)index, weight, color);
+			_sites.Add (site);
+			_sitesIndexedByLocation [p] = site;
 		}
 
-                public function edges():Vector.<Edge>
-                {
-                	return _edges;
-                }
+		public List<Edge> edges ()
+		{
+			return _edges;
+		}
           
-		public function region(p:Point):Vector.<Point>
+		public List<Vector2> region (Vector2 p)
 		{
-			var site:Site = _sitesIndexedByLocation[p];
-			if (!site)
-			{
-				return new Vector.<Point>();
+			Site site = _sitesIndexedByLocation [p];
+			if (site == null) {
+				return new List<Vector2> ();
 			}
-			return site.region(_plotBounds);
+			return site.Region (_plotBounds);
 		}
 
-          // TODO: bug: if you call this before you call region(), something goes wrong :(
-		public function neighborSitesForSite(coord:Point):Vector.<Point>
+		// TODO: bug: if you call this before you call region(), something goes wrong :(
+		public List<Vector2> neighborSitesForSite (Vector2 coord)
 		{
-			var points:Vector.<Point> = new Vector.<Point>();
-			var site:Site = _sitesIndexedByLocation[coord];
-			if (!site)
-			{
+			List<Vector2> points = new List<Vector2> ();
+			Site site = _sitesIndexedByLocation [coord];
+			if (site == null) {
 				return points;
 			}
-			var sites:Vector.<Site> = site.neighborSites();
-			var neighbor:Site;
-			for each (neighbor in sites)
-			{
-				points.push(neighbor.coord);
+			List<Site> sites = site.NeighborSites ();
+			Site neighbor;
+			for (int nIndex =0; nIndex<sites.Count; nIndex++) {
+				neighbor = sites [nIndex];
+				points.Add (neighbor.coord);
 			}
 			return points;
 		}
 
-		public function circles():Vector.<Circle>
+		public List<Circle> circles ()
 		{
-			return _sites.circles();
+			return _sites.circles ();
 		}
 		
-		public function voronoiBoundaryForSite(coord:Point):Vector.<LineSegment>
+		public List<LineSegment> voronoiBoundaryForSite (Vector2 coord)
 		{
-			return visibleLineSegments(selectEdgesForSitePoint(coord, _edges));
+			return DelaunayHelpers.visibleLineSegments (DelaunayHelpers.selectEdgesForSitePoint (coord, _edges));
 		}
 
-		public function delaunayLinesForSite(coord:Point):Vector.<LineSegment>
+		public List<LineSegment> delaunayLinesForSite (Vector2 coord)
 		{
-			return delaunayLinesForEdges(selectEdgesForSitePoint(coord, _edges));
+			return DelaunayHelpers.delaunayLinesForEdges (DelaunayHelpers.selectEdgesForSitePoint (coord, _edges));
 		}
 		
-		public function voronoiDiagram():Vector.<LineSegment>
+		public List<LineSegment> voronoiDiagram ()
 		{
-			return visibleLineSegments(_edges);
+			return DelaunayHelpers.visibleLineSegments (_edges);
 		}
 		
-		public function delaunayTriangulation(keepOutMask:BitmapData = null):Vector.<LineSegment>
+		public List<LineSegment> delaunayTriangulation (/*BitmapData keepOutMask = null*/)
 		{
-			return delaunayLinesForEdges(selectNonIntersectingEdges(keepOutMask, _edges));
+			return DelaunayHelpers.delaunayLinesForEdges (DelaunayHelpers.selectNonIntersectingEdges (/*keepOutMask,*/_edges));
 		}
 		
-		public function hull():Vector.<LineSegment>
+		public List<LineSegment> hull ()
 		{
-			return delaunayLinesForEdges(hullEdges());
+			return DelaunayHelpers.delaunayLinesForEdges (HullEdges ());
 		}
 		
-		private function hullEdges():Vector.<Edge>
+		private List<Edge> HullEdges ()
 		{
-			return _edges.filter(myTest);
-		
-			function myTest(edge:Edge, index:int, vector:Vector.<Edge>):Boolean
-			{
-				return (edge.isPartOfConvexHull());
-			}
+			return _edges.FindAll (delegate (Edge edge) {
+				return (edge.IsPartOfConvexHull ());
+			});
 		}
 
-		public function hullPointsInOrder():Vector.<Point>
+		public List<Vector2> hullPointsInOrder ()
 		{
-			var hullEdges:Vector.<Edge> = hullEdges();
+			List<Edge> hullEdges = HullEdges ();
 			
-			var points:Vector.<Point> = new Vector.<Point>();
-			if (hullEdges.length == 0)
-			{
+			List<Vector2> points = new List<Vector2> ();
+			if (hullEdges.Count == 0) {
 				return points;
 			}
 			
-			var reorderer:EdgeReorderer = new EdgeReorderer(hullEdges, Site);
+			EdgeReorderer reorderer = new EdgeReorderer (hullEdges, VertexOrSite.SITE);
 			hullEdges = reorderer.edges;
-			var orientations:Vector.<LR> = reorderer.edgeOrientations;
-			reorderer.dispose();
+			List<Side> orientations = reorderer.edgeOrientations;
+			reorderer.Dispose ();
 			
-			var orientation:LR;
+			Side orientation;
 
-			var n:int = hullEdges.length;
-			for (var i:int = 0; i < n; ++i)
-			{
-				var edge:Edge = hullEdges[i];
-				orientation = orientations[i];
-				points.push(edge.site(orientation).coord);
+			int n = hullEdges.Count;
+			for (int i = 0; i < n; ++i) {
+				Edge edge = hullEdges [i];
+				orientation = orientations [i];
+				points.Add (edge.Site (orientation).coord);
 			}
 			return points;
 		}
 		
-		public function spanningTree(type:String = "minimum", keepOutMask:BitmapData = null):Vector.<LineSegment>
+		public List<LineSegment> spanningTree (KruskalType type = KruskalType.MINIMUM/*, BitmapData keepOutMask = null*/)
 		{
-			var edges:Vector.<Edge> = selectNonIntersectingEdges(keepOutMask, _edges);
-			var segments:Vector.<LineSegment> = delaunayLinesForEdges(edges);
-			return kruskal(segments, type);
+			List<Edge> edges = DelaunayHelpers.selectNonIntersectingEdges (/*keepOutMask,*/_edges);
+			List<LineSegment> segments = DelaunayHelpers.delaunayLinesForEdges (edges);
+			return DelaunayHelpers.kruskal (segments, type);
 		}
 
-		public function regions():Vector.<Vector.<Point>>
+		public List<List<Vector2>> regions ()
 		{
-			return _sites.regions(_plotBounds);
+			return _sites.regions (_plotBounds);
 		}
 		
-		public function siteColors(referenceImage:BitmapData = null):Vector.<uint>
+		public List<uint> siteColors (/*BitmapData referenceImage = null*/)
 		{
-			return _sites.siteColors(referenceImage);
+			return _sites.siteColors (/*referenceImage*/);
 		}
 		
 		/**
@@ -224,199 +208,215 @@ package com.nodename.Delaunay
 		 * @return coordinates of nearest Site to (x, y)
 		 * 
 		 */
-		public function nearestSitePoint(proximityMap:BitmapData, x:Number, y:Number):Point
+		public Nullable<Vector2> nearestSitePoint (/*BitmapData proximityMap,*/float x, float y)
 		{
-			return _sites.nearestSitePoint(proximityMap, x, y);
+			return _sites.nearestSitePoint (/*proximityMap,*/x, y);
 		}
 		
-		public function siteCoords():Vector.<Point>
+		public List<Vector2> siteCoords ()
 		{
-			return _sites.siteCoords();
+			return _sites.siteCoords ();
 		}
 
-		private function fortunesAlgorithm():void
+		private Site fortunesAlgorithm_bottomMostSite;
+		private void fortunesAlgorithm ()
 		{
-			var newSite:Site, bottomSite:Site, topSite:Site, tempSite:Site;
-			var v:Vertex, vertex:Vertex;
-			var newintstar:Point;
-			var leftRight:LR;
-			var lbnd:Halfedge, rbnd:Halfedge, llbnd:Halfedge, rrbnd:Halfedge, bisector:Halfedge;
-			var edge:Edge;
+			Site newSite, bottomSite, topSite, tempSite;
+			Vertex v, vertex;
+			Vector2 newintstar;
+			Side leftRight;
+			Halfedge lbnd, rbnd, llbnd, rrbnd, bisector;
+			Edge edge;
 			
-			var dataBounds:Rectangle = _sites.getSitesBounds();
+			Rect dataBounds = _sites.getSitesBounds ();
 			
-			var sqrt_nsites:int = int(Math.sqrt(_sites.length + 4));
-			var heap:HalfedgePriorityQueue = new HalfedgePriorityQueue(dataBounds.y, dataBounds.height, sqrt_nsites);
-			var edgeList:EdgeList = new EdgeList(dataBounds.x, dataBounds.width, sqrt_nsites);
-			var halfEdges:Vector.<Halfedge> = new Vector.<Halfedge>();
-			var vertices:Vector.<Vertex> = new Vector.<Vertex>();
+			int sqrt_nsites = (int)(Mathf.Sqrt (_sites.Count + 4));
+			HalfedgePriorityQueue heap = new HalfedgePriorityQueue (dataBounds.y, dataBounds.height, sqrt_nsites);
+			EdgeList edgeList = new EdgeList (dataBounds.x, dataBounds.width, sqrt_nsites);
+			List<Halfedge> halfEdges = new List<Halfedge> ();
+			List<Vertex> vertices = new List<Vertex> ();
 			
-			var bottomMostSite:Site = _sites.next();
-			newSite = _sites.next();
+			fortunesAlgorithm_bottomMostSite = _sites.next ();
+			newSite = _sites.next ();
 			
-			for (;;)
-			{
-				if (heap.empty() == false)
-				{
-					newintstar = heap.min();
+			for (;;) {
+				if (heap.empty () == false) {
+					newintstar = heap.min ();
 				}
 			
 				if (newSite != null 
-				&&  (heap.empty() || compareByYThenX(newSite, newintstar) < 0))
-				{
+					&& (heap.empty () || compareByYThenX (newSite, newintstar) < 0)) {
 					/* new site is smallest */
 					//trace("smallest: new site " + newSite);
 					
 					// Step 8:
-					lbnd = edgeList.edgeListLeftNeighbor(newSite.coord);	// the Halfedge just to the left of newSite
+					lbnd = edgeList.edgeListLeftNeighbor (newSite.coord);	// the Halfedge just to the left of newSite
 					//trace("lbnd: " + lbnd);
 					rbnd = lbnd.edgeListRightNeighbor;		// the Halfedge just to the right
 					//trace("rbnd: " + rbnd);
-					bottomSite = rightRegion(lbnd);		// this is the same as leftRegion(rbnd)
+					bottomSite = fortunesAlgorithm_rightRegion (lbnd);		// this is the same as leftRegion(rbnd)
 					// this Site determines the region containing the new site
 					//trace("new Site is in region of existing site: " + bottomSite);
 					
 					// Step 9:
-					edge = Edge.createBisectingEdge(bottomSite, newSite);
+					edge = Edge.createBisectingEdge (bottomSite, newSite);
 					//trace("new edge: " + edge);
-					_edges.push(edge);
+					_edges.Add (edge);
 					
-					bisector = Halfedge.create(edge, LR.LEFT);
-					halfEdges.push(bisector);
+					bisector = Halfedge.Create (edge, Side.LEFT);
+					halfEdges.Add (bisector);
 					// inserting two Halfedges into edgeList constitutes Step 10:
 					// insert bisector to the right of lbnd:
-					edgeList.insert(lbnd, bisector);
+					edgeList.insert (lbnd, bisector);
 					
 					// first half of Step 11:
-					if ((vertex = Vertex.intersect(lbnd, bisector)) != null) 
-					{
-						vertices.push(vertex);
-						heap.remove(lbnd);
+					if ((vertex = Vertex.Intersect (lbnd, bisector)) != null) {
+						vertices.Add (vertex);
+						heap.remove (lbnd);
 						lbnd.vertex = vertex;
-						lbnd.ystar = vertex.y + newSite.dist(vertex);
-						heap.insert(lbnd);
+						lbnd.ystar = vertex.y + newSite.dist (vertex);
+						heap.insert (lbnd);
 					}
 					
 					lbnd = bisector;
-					bisector = Halfedge.create(edge, LR.RIGHT);
-					halfEdges.push(bisector);
+					bisector = Halfedge.Create (edge, Side.RIGHT);
+					halfEdges.Add (bisector);
 					// second Halfedge for Step 10:
 					// insert bisector to the right of lbnd:
-					edgeList.insert(lbnd, bisector);
+					edgeList.insert (lbnd, bisector);
 					
 					// second half of Step 11:
-					if ((vertex = Vertex.intersect(bisector, rbnd)) != null)
-					{
-						vertices.push(vertex);
+					if ((vertex = Vertex.Intersect (bisector, rbnd)) != null) {
+						vertices.Add (vertex);
 						bisector.vertex = vertex;
-						bisector.ystar = vertex.y + newSite.dist(vertex);
-						heap.insert(bisector);	
+						bisector.ystar = vertex.y + newSite.dist (vertex);
+						heap.insert (bisector);	
 					}
 					
-					newSite = _sites.next();	
-				}
-				else if (heap.empty() == false) 
-				{
+					newSite = _sites.next ();	
+				} else if (heap.empty () == false) {
 					/* intersection is smallest */
-					lbnd = heap.extractMin();
+					lbnd = heap.extractMin ();
 					llbnd = lbnd.edgeListLeftNeighbor;
 					rbnd = lbnd.edgeListRightNeighbor;
 					rrbnd = rbnd.edgeListRightNeighbor;
-					bottomSite = leftRegion(lbnd);
-					topSite = rightRegion(rbnd);
+					bottomSite = fortunesAlgorithm_leftRegion (lbnd);
+					topSite = fortunesAlgorithm_rightRegion (rbnd);
 					// these three sites define a Delaunay triangle
 					// (not actually using these for anything...)
 					//_triangles.push(new Triangle(bottomSite, topSite, rightRegion(lbnd)));
 					
 					v = lbnd.vertex;
-					v.setIndex();
-					lbnd.edge.setVertex(lbnd.leftRight, v);
-					rbnd.edge.setVertex(rbnd.leftRight, v);
-					edgeList.remove(lbnd); 
-					heap.remove(rbnd);
-					edgeList.remove(rbnd); 
-					leftRight = LR.LEFT;
-					if (bottomSite.y > topSite.y)
-					{
-						tempSite = bottomSite; bottomSite = topSite; topSite = tempSite; leftRight = LR.RIGHT;
+					v.SetIndex ();
+					if (lbnd.leftRight == null) {
+						Debug.LogError ("XXX: lbnd.leftRight is null but expected Side. Should make Nullable.");
 					}
-					edge = Edge.createBisectingEdge(bottomSite, topSite);
-					_edges.push(edge);
-					bisector = Halfedge.create(edge, leftRight);
-					halfEdges.push(bisector);
-					edgeList.insert(llbnd, bisector);
-					edge.setVertex(LR.other(leftRight), v);
-					if ((vertex = Vertex.intersect(llbnd, bisector)) != null)
-					{
-						vertices.push(vertex);
-						heap.remove(llbnd);
+					if (rbnd.leftRight == null) {
+						Debug.LogError ("XXX: rbnd.leftRight is null but expected Side. Should make Nullable.");
+					}
+					lbnd.edge.setVertex ((Side)lbnd.leftRight, v);
+					rbnd.edge.setVertex ((Side)rbnd.leftRight, v);
+					edgeList.remove (lbnd); 
+					heap.remove (rbnd);
+					edgeList.remove (rbnd); 
+					leftRight = Side.LEFT;
+					if (bottomSite.y > topSite.y) {
+						tempSite = bottomSite;
+						bottomSite = topSite;
+						topSite = tempSite;
+						leftRight = Side.RIGHT;
+					}
+					edge = Edge.createBisectingEdge (bottomSite, topSite);
+					_edges.Add (edge);
+					bisector = Halfedge.Create (edge, leftRight);
+					halfEdges.Add (bisector);
+					edgeList.insert (llbnd, bisector);
+					edge.setVertex (SideHelper.other (leftRight), v);
+					if ((vertex = Vertex.Intersect (llbnd, bisector)) != null) {
+						vertices.Add (vertex);
+						heap.remove (llbnd);
 						llbnd.vertex = vertex;
-						llbnd.ystar = vertex.y + bottomSite.dist(vertex);
-						heap.insert(llbnd);
+						llbnd.ystar = vertex.y + bottomSite.dist (vertex);
+						heap.insert (llbnd);
 					}
-					if ((vertex = Vertex.intersect(bisector, rrbnd)) != null)
-					{
-						vertices.push(vertex);
+					if ((vertex = Vertex.Intersect (bisector, rrbnd)) != null) {
+						vertices.Add (vertex);
 						bisector.vertex = vertex;
-						bisector.ystar = vertex.y + bottomSite.dist(vertex);
-						heap.insert(bisector);
+						bisector.ystar = vertex.y + bottomSite.dist (vertex);
+						heap.insert (bisector);
 					}
-				}
-				else
-				{
+				} else {
 					break;
 				}
 			}
 			
 			// heap should be empty now
-			heap.dispose();
-			edgeList.dispose();
+			heap.Dispose ();
+			edgeList.Dispose ();
 			
-			for each (var halfEdge:Halfedge in halfEdges)
-			{
-				halfEdge.reallyDispose();
+			for (int hIndex = 0; hIndex<halfEdges.Count; hIndex++) {
+				Halfedge halfEdge = halfEdges [hIndex];
+				halfEdge.ReallyDispose ();
 			}
-			halfEdges.length = 0;
+			halfEdges.Clear ();
 			
 			// we need the vertices to clip the edges
-			for each (edge in _edges)
-			{
-				edge.clipVertices(_plotBounds);
+			for (int eIndex = 0; eIndex<_edges.Count; eIndex++) {
+				edge = _edges [eIndex];
+				edge.ClipVertices (_plotBounds);
 			}
 			// but we don't actually ever use them again!
-			for each (vertex in vertices)
-			{
-				vertex.dispose();
+			for (int vIndex = 0; vIndex<vertices.Count; vIndex++) {
+				vertex = vertices [vIndex];
+				vertex.Dispose ();
 			}
-			vertices.length = 0;
-			
-			function leftRegion(he:Halfedge):Site
-			{
-				var edge:Edge = he.edge;
-				if (edge == null)
-				{
-					return bottomMostSite;
-				}
-				return edge.site(he.leftRight);
-			}
-			
-			function rightRegion(he:Halfedge):Site
-			{
-				var edge:Edge = he.edge;
-				if (edge == null)
-				{
-					return bottomMostSite;
-				}
-				return edge.site(LR.other(he.leftRight));
-			}
+			vertices.Clear ();
 		}
 
-		internal static function compareByYThenX(s1:Site, s2:*):Number
+		private Site fortunesAlgorithm_leftRegion (Halfedge he)
 		{
-			if (s1.y < s2.y) return -1;
-			if (s1.y > s2.y) return 1;
-			if (s1.x < s2.x) return -1;
-			if (s1.x > s2.x) return 1;
+			Edge edge = he.edge;
+			if (edge == null) {
+				return fortunesAlgorithm_bottomMostSite;
+			}
+			if (he.leftRight == null) {
+				Debug.LogError ("XXX: he.leftRight was null but expected Side. Should make Nullable");
+			}
+			return edge.Site ((Side)he.leftRight);
+		}
+		
+		private Site fortunesAlgorithm_rightRegion (Halfedge he)
+		{
+			Edge edge = he.edge;
+			if (edge == null) {
+				return fortunesAlgorithm_bottomMostSite;
+			}
+			return edge.Site (SideHelper.other ((Side)he.leftRight));
+		}
+
+		public static int compareByYThenX (Site s1, Site s2) // TODO: Fix this (previously s2:*)
+		{
+			if (s1.y < s2.y)
+				return -1;
+			if (s1.y > s2.y)
+				return 1;
+			if (s1.x < s2.x)
+				return -1;
+			if (s1.x > s2.x)
+				return 1;
+			return 0;
+		}
+
+		public static int compareByYThenX (Site s1, Vector2 s2) // TODO: Fix this (previously s2:*)
+		{
+			if (s1.y < s2.y)
+				return -1;
+			if (s1.y > s2.y)
+				return 1;
+			if (s1.x < s2.x)
+				return -1;
+			if (s1.x > s2.x)
+				return 1;
 			return 0;
 		}
 

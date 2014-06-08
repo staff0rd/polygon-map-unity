@@ -34,7 +34,7 @@ namespace Delaunay
 			 * @return 
 			 * 
 			 */
-		static Edge createBisectingEdge (Site site0, Site site1)
+		public static Edge createBisectingEdge (Site site0, Site site1)
 		{
 			float dx, dy, absdx, absdy;
 			float a, b, c;
@@ -140,7 +140,7 @@ namespace Delaunay
 
 		private static int _nedges = 0;
 			
-		private static readonly Edge DELETED = new Edge ();
+		public static readonly Edge DELETED = new Edge ();
 			
 		// the equation of the edge: ax + by = c
 		public float a, b, c;

@@ -1,63 +1,62 @@
-package com.nodename.Delaunay
+using UnityEngine;
+using System.Collections.Generic;
+using Delaunay.Utils;
+
+namespace Delaunay
 {
-	import flash.geom.Point;
 	
-	internal final class HalfedgePriorityQueue // also known as heap
+	internal sealed class HalfedgePriorityQueue: Utils.IDisposable // also known as heap
 	{
-		private var _hash:Vector.<Halfedge>;
-		private var _count:int;
-		private var _minBucket:int;
-		private var _hashsize:int;
+		private List<Halfedge> _hash;
+		private int _count;
+		private int _minBucket;
+		private int _hashsize;
 		
-		private var _ymin:Number;
-		private var _deltay:Number;
+		private float _ymin;
+		private float _deltay;
 		
-		public function HalfedgePriorityQueue(ymin:Number, deltay:Number, sqrt_nsites:int)
+		public HalfedgePriorityQueue (float ymin, float deltay, int sqrt_nsites)
 		{
 			_ymin = ymin;
 			_deltay = deltay;
 			_hashsize = 4 * sqrt_nsites;
-			initialize();
+			Initialize ();
 		}
 		
-		public function dispose():void
+		public void Dispose ()
 		{
 			// get rid of dummies
-			for (var i:int = 0; i < _hashsize; ++i)
-			{
-				_hash[i].dispose();
-				_hash[i] = null;
+			for (int i = 0; i < _hashsize; ++i) {
+				_hash [i].Dispose ();
+				_hash [i] = null;
 			}
 			_hash = null;
 		}
 
-		private function initialize():void
+		private void Initialize ()
 		{
-			var i:int;
+			int i;
 		
 			_count = 0;
 			_minBucket = 0;
-			_hash = new Vector.<Halfedge>(_hashsize);
+			_hash = new List<Halfedge> (_hashsize);
 			// dummy Halfedge at the top of each hash
-			for (i = 0; i < _hashsize; ++i)
-			{
-				_hash[i] = Halfedge.createDummy();
-				_hash[i].nextInPriorityQueue = null;
+			for (i = 0; i < _hashsize; ++i) {
+				_hash [i] = Halfedge.createDummy ();
+				_hash [i].nextInPriorityQueue = null;
 			}
 		}
 
-		public function insert(halfEdge:Halfedge):void
+		public void insert (Halfedge halfEdge)
 		{
-			var previous:Halfedge, next:Halfedge;
-			var insertionBucket:int = bucket(halfEdge);
-			if (insertionBucket < _minBucket)
-			{
+			Halfedge previous, next;
+			int insertionBucket = bucket (halfEdge);
+			if (insertionBucket < _minBucket) {
 				_minBucket = insertionBucket;
 			}
-			previous = _hash[insertionBucket];
+			previous = _hash [insertionBucket];
 			while ((next = previous.nextInPriorityQueue) != null
-			&&     (halfEdge.ystar  > next.ystar || (halfEdge.ystar == next.ystar && halfEdge.vertex.x > next.vertex.x)))
-			{
+			&&     (halfEdge.ystar  > next.ystar || (halfEdge.ystar == next.ystar && halfEdge.vertex.x > next.vertex.x))) {
 				previous = next;
 			}
 			halfEdge.nextInPriorityQueue = previous.nextInPriorityQueue; 
@@ -65,52 +64,51 @@ package com.nodename.Delaunay
 			++_count;
 		}
 
-		public function remove(halfEdge:Halfedge):void
+		public void remove (Halfedge halfEdge)
 		{
-			var previous:Halfedge;
-			var removalBucket:int = bucket(halfEdge);
+			Halfedge previous;
+			int removalBucket = bucket (halfEdge);
 			
-			if (halfEdge.vertex != null)
-			{
-				previous = _hash[removalBucket];
-				while (previous.nextInPriorityQueue != halfEdge)
-				{
+			if (halfEdge.vertex != null) {
+				previous = _hash [removalBucket];
+				while (previous.nextInPriorityQueue != halfEdge) {
 					previous = previous.nextInPriorityQueue;
 				}
 				previous.nextInPriorityQueue = halfEdge.nextInPriorityQueue;
 				_count--;
 				halfEdge.vertex = null;
 				halfEdge.nextInPriorityQueue = null;
-				halfEdge.dispose();
+				halfEdge.Dispose ();
 			}
 		}
 
-		private function bucket(halfEdge:Halfedge):int
+		private int bucket (Halfedge halfEdge)
 		{
-			var theBucket:int = (halfEdge.ystar - _ymin)/_deltay * _hashsize;
-			if (theBucket < 0) theBucket = 0;
-			if (theBucket >= _hashsize) theBucket = _hashsize - 1;
+			int theBucket = (int)((halfEdge.ystar - _ymin) / _deltay * _hashsize);
+			if (theBucket < 0)
+				theBucket = 0;
+			if (theBucket >= _hashsize)
+				theBucket = _hashsize - 1;
 			return theBucket;
 		}
 		
-		private function isEmpty(bucket:int):Boolean
+		private bool isEmpty (int bucket)
 		{
-			return (_hash[bucket].nextInPriorityQueue == null);
+			return (_hash [bucket].nextInPriorityQueue == null);
 		}
 		
 		/**
 		 * move _minBucket until it contains an actual Halfedge (not just the dummy at the top); 
 		 * 
 		 */
-		private function adjustMinBucket():void
+		private void adjustMinBucket ()
 		{
-			while (_minBucket < _hashsize - 1 && isEmpty(_minBucket))
-			{
+			while (_minBucket < _hashsize - 1 && isEmpty(_minBucket)) {
 				++_minBucket;
 			}
 		}
 
-		public function empty():Boolean
+		public bool empty ()
 		{
 			return _count == 0;
 		}
@@ -119,11 +117,11 @@ package com.nodename.Delaunay
 		 * @return coordinates of the Halfedge's vertex in V*, the transformed Voronoi diagram
 		 * 
 		 */
-		public function min():Point
+		public Vector2 min ()
 		{
-			adjustMinBucket();
-			var answer:Halfedge = _hash[_minBucket].nextInPriorityQueue;
-			return new Point(answer.vertex.x, answer.ystar);
+			adjustMinBucket ();
+			Halfedge answer = _hash [_minBucket].nextInPriorityQueue;
+			return new Vector2 (answer.vertex.x, answer.ystar);
 		}
 
 		/**
@@ -131,14 +129,14 @@ package com.nodename.Delaunay
 		 * @return 
 		 * 
 		 */
-		public function extractMin():Halfedge
+		public Halfedge extractMin ()
 		{
-			var answer:Halfedge;
+			Halfedge answer;
 		
 			// get the first real Halfedge in _minBucket
-			answer = _hash[_minBucket].nextInPriorityQueue;
+			answer = _hash [_minBucket].nextInPriorityQueue;
 			
-			_hash[_minBucket].nextInPriorityQueue = answer.nextInPriorityQueue;
+			_hash [_minBucket].nextInPriorityQueue = answer.nextInPriorityQueue;
 			_count--;
 			answer.nextInPriorityQueue = null;
 			

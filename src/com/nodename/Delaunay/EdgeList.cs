@@ -1,67 +1,62 @@
-package com.nodename.Delaunay
+using UnityEngine;
+using Delaunay.Utils;
+
+namespace Delaunay
 {
-	import com.nodename.utils.IDisposable;
 	
-	import flash.geom.Point;
-	
-	internal final class EdgeList implements IDisposable
+	internal sealed class EdgeList: Utils.IDisposable
 	{
-		private var _deltax:Number;
-		private var _xmin:Number;
+		private float _deltax;
+		private float _xmin;
 		
-		private var _hashsize:int;
-		private var _hash:Vector.<Halfedge>;
-		private var _leftEnd:Halfedge;
-		public function get leftEnd():Halfedge
-		{
-			return _leftEnd;
+		private int _hashsize;
+		private Halfedge[] _hash;
+		private Halfedge _leftEnd;
+		public Halfedge leftEnd {
+			get { return _leftEnd;}
 		}
-		private var _rightEnd:Halfedge;
-		public function get rightEnd():Halfedge
-		{
-			return _rightEnd;
+		private Halfedge _rightEnd;
+		public Halfedge rightEnd {
+			get { return _rightEnd;}
 		}
 		
-		public function dispose():void
+		public void Dispose ()
 		{
-			var halfEdge:Halfedge = _leftEnd;
-			var prevHe:Halfedge;
-			while (halfEdge != _rightEnd)
-			{
+			Halfedge halfEdge = _leftEnd;
+			Halfedge prevHe;
+			while (halfEdge != _rightEnd) {
 				prevHe = halfEdge;
 				halfEdge = halfEdge.edgeListRightNeighbor;
-				prevHe.dispose();
+				prevHe.Dispose ();
 			}
 			_leftEnd = null;
-			_rightEnd.dispose();
+			_rightEnd.Dispose ();
 			_rightEnd = null;
 
-			var i:int;
-			for (i = 0; i < _hashsize; ++i)
-			{
-				_hash[i] = null;
+			int i;
+			for (i = 0; i < _hashsize; ++i) {
+				_hash [i] = null;
 			}
 			_hash = null;
 		}
 		
-		public function EdgeList(xmin:Number, deltax:Number, sqrt_nsites:int)
+		public EdgeList (float xmin, float deltax, int sqrt_nsites)
 		{
 			_xmin = xmin;
 			_deltax = deltax;
 			_hashsize = 2 * sqrt_nsites;
 
-			var i:int;
-			_hash = new Vector.<Halfedge>(_hashsize, true);
+			_hash = new Halfedge[_hashsize];
 			
 			// two dummy Halfedges:
-			_leftEnd = Halfedge.createDummy();
-			_rightEnd = Halfedge.createDummy();
+			_leftEnd = Halfedge.createDummy ();
+			_rightEnd = Halfedge.createDummy ();
 			_leftEnd.edgeListLeftNeighbor = null;
 			_leftEnd.edgeListRightNeighbor = _rightEnd;
 			_rightEnd.edgeListLeftNeighbor = _leftEnd;
 			_rightEnd.edgeListRightNeighbor = null;
-			_hash[0] = _leftEnd;
-			_hash[_hashsize - 1] = _rightEnd;
+			_hash [0] = _leftEnd;
+			_hash [_hashsize - 1] = _rightEnd;
 		}
 
 		/**
@@ -70,7 +65,7 @@ package com.nodename.Delaunay
 		 * @param newHalfedge
 		 * 
 		 */
-		public function insert(lb:Halfedge, newHalfedge:Halfedge):void
+		public void insert (Halfedge lb, Halfedge newHalfedge)
 		{
 			newHalfedge.edgeListLeftNeighbor = lb;
 			newHalfedge.edgeListRightNeighbor = lb.edgeListRightNeighbor;
@@ -84,7 +79,7 @@ package com.nodename.Delaunay
 		 * @param halfEdge
 		 * 
 		 */
-		public function remove(halfEdge:Halfedge):void
+		public void remove (Halfedge halfEdge)
 		{
 			halfEdge.edgeListLeftNeighbor.edgeListRightNeighbor = halfEdge.edgeListRightNeighbor;
 			halfEdge.edgeListRightNeighbor.edgeListLeftNeighbor = halfEdge.edgeListLeftNeighbor;
@@ -98,76 +93,62 @@ package com.nodename.Delaunay
 		 * @return 
 		 * 
 		 */
-		public function edgeListLeftNeighbor(p:Point):Halfedge
+		public Halfedge edgeListLeftNeighbor (Vector2 p)
 		{
-			var i:int, bucket:int;
-			var halfEdge:Halfedge;
+			int i, bucket;
+			Halfedge halfEdge;
 		
 			/* Use hash table to get close to desired halfedge */
-			bucket = (p.x - _xmin)/_deltax * _hashsize;
-			if (bucket < 0)
-			{
+			bucket = (int)((p.x - _xmin) / _deltax * _hashsize);
+			if (bucket < 0) {
 				bucket = 0;
 			}
-			if (bucket >= _hashsize)
-			{
+			if (bucket >= _hashsize) {
 				bucket = _hashsize - 1;
 			}
-			halfEdge = getHash(bucket);
-			if (halfEdge == null)
-			{
-				for (i = 1; true ; ++i)
-			    {
-					if ((halfEdge = getHash(bucket - i)) != null) break;
-					if ((halfEdge = getHash(bucket + i)) != null) break;
-			    }
+			halfEdge = getHash (bucket);
+			if (halfEdge == null) {
+				for (i = 1; true; ++i) {
+					if ((halfEdge = getHash (bucket - i)) != null)
+						break;
+					if ((halfEdge = getHash (bucket + i)) != null)
+						break;
+				}
 			}
 			/* Now search linear list of halfedges for the correct one */
-			if (halfEdge == leftEnd  || (halfEdge != rightEnd && halfEdge.isLeftOf(p)))
-			{
-				do
-				{
+			if (halfEdge == leftEnd || (halfEdge != rightEnd && halfEdge.isLeftOf (p))) {
+				do {
 					halfEdge = halfEdge.edgeListRightNeighbor;
-				}
-				while (halfEdge != rightEnd && halfEdge.isLeftOf(p));
+				} while (halfEdge != rightEnd && halfEdge.isLeftOf(p));
 				halfEdge = halfEdge.edgeListLeftNeighbor;
-			}
-			else
-			{
-				do
-				{
+			} else {
+				do {
 					halfEdge = halfEdge.edgeListLeftNeighbor;
-				}
-				while (halfEdge != leftEnd && !halfEdge.isLeftOf(p));
+				} while (halfEdge != leftEnd && !halfEdge.isLeftOf(p));
 			}
 		
 			/* Update hash table and reference counts */
-			if (bucket > 0 && bucket <_hashsize - 1)
-			{
-				_hash[bucket] = halfEdge;
+			if (bucket > 0 && bucket < _hashsize - 1) {
+				_hash [bucket] = halfEdge;
 			}
 			return halfEdge;
 		}
 
 		/* Get entry from hash table, pruning any deleted nodes */
-		private function getHash(b:int):Halfedge
+		private Halfedge getHash (int b)
 		{
-			var halfEdge:Halfedge;
+			Halfedge halfEdge;
 		
-			if (b < 0 || b >= _hashsize)
-			{
+			if (b < 0 || b >= _hashsize) {
 				return null;
 			}
-			halfEdge = _hash[b]; 
-			if (halfEdge != null && halfEdge.edge == Edge.DELETED)
-			{
+			halfEdge = _hash [b]; 
+			if (halfEdge != null && halfEdge.edge == Edge.DELETED) {
 				/* Hash table points to deleted halfedge.  Patch as necessary. */
-				_hash[b] = null;
+				_hash [b] = null;
 				// still can't dispose halfEdge yet!
 				return null;
-			}
-			else
-			{
+			} else {
 				return halfEdge;
 			}
 		}
