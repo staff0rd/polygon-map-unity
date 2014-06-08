@@ -45,8 +45,7 @@ public class VoronoiDemo : MonoBehaviour
 		m_edges = v.VoronoiDiagram ();
 			
 		m_spanningTree = v.SpanningTree (KruskalType.MINIMUM);
-		//          XXX: Bugged
-		//			m_delaunayTriangulation = v.DelaunayTriangulation ();
+		m_delaunayTriangulation = v.DelaunayTriangulation ();
 	}
 
 	void OnDrawGizmos ()
@@ -65,32 +64,31 @@ public class VoronoiDemo : MonoBehaviour
 				Vector2 right = (Vector2)m_edges [i].p1;
 				Gizmos.DrawLine ((Vector3)left, (Vector3)right);
 			}
-
-			if (m_spanningTree != null) {
-				Gizmos.color = Color.green;
-				for (int i = 0; i< m_spanningTree.Count; i++) {
-					LineSegment seg = m_spanningTree [i];				
-					Vector2 left = (Vector2)seg.p0;
-					Vector2 right = (Vector2)seg.p1;
-					Gizmos.DrawLine ((Vector3)left, (Vector3)right);
-				}
-			}
-
-//          XXX: Bugged
-//			Gizmos.color = Color.magenta;
-//			if (m_delaunayTriangulation != null) {
-//				for (int i = 0; i< m_edges.Count; i++) {
-//					Vector2 left = (Vector2)m_delaunayTriangulation [i].p0;
-//					Vector2 right = (Vector2)m_delaunayTriangulation [i].p1;
-//					Gizmos.DrawLine ((Vector3)left, (Vector3)right);
-//				}
-//			}
-
-			Gizmos.color = Color.yellow;
-			Gizmos.DrawLine (new Vector2 (0, 0), new Vector2 (0, m_mapHeight));
-			Gizmos.DrawLine (new Vector2 (0, 0), new Vector2 (m_mapWidth, 0));
-			Gizmos.DrawLine (new Vector2 (m_mapWidth, 0), new Vector2 (m_mapWidth, m_mapHeight));
-			Gizmos.DrawLine (new Vector2 (0, m_mapHeight), new Vector2 (m_mapWidth, m_mapHeight));
 		}
+
+		Gizmos.color = Color.magenta;
+		if (m_delaunayTriangulation != null) {
+			for (int i = 0; i< m_delaunayTriangulation.Count; i++) {
+				Vector2 left = (Vector2)m_delaunayTriangulation [i].p0;
+				Vector2 right = (Vector2)m_delaunayTriangulation [i].p1;
+				Gizmos.DrawLine ((Vector3)left, (Vector3)right);
+			}
+		}
+
+		if (m_spanningTree != null) {
+			Gizmos.color = Color.green;
+			for (int i = 0; i< m_spanningTree.Count; i++) {
+				LineSegment seg = m_spanningTree [i];				
+				Vector2 left = (Vector2)seg.p0;
+				Vector2 right = (Vector2)seg.p1;
+				Gizmos.DrawLine ((Vector3)left, (Vector3)right);
+			}
+		}
+
+		Gizmos.color = Color.yellow;
+		Gizmos.DrawLine (new Vector2 (0, 0), new Vector2 (0, m_mapHeight));
+		Gizmos.DrawLine (new Vector2 (0, 0), new Vector2 (m_mapWidth, 0));
+		Gizmos.DrawLine (new Vector2 (m_mapWidth, 0), new Vector2 (m_mapWidth, m_mapHeight));
+		Gizmos.DrawLine (new Vector2 (0, m_mapHeight), new Vector2 (m_mapWidth, m_mapHeight));
 	}
 }
