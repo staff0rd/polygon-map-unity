@@ -7,7 +7,7 @@ namespace Delaunay
 	
 	internal sealed class HalfedgePriorityQueue: Utils.IDisposable // also known as heap
 	{
-		private List<Halfedge> _hash;
+		private Halfedge[] _hash;
 		private int _count;
 		private int _minBucket;
 		private int _hashsize;
@@ -39,7 +39,7 @@ namespace Delaunay
 		
 			_count = 0;
 			_minBucket = 0;
-			_hash = new List<Halfedge> (_hashsize);
+			_hash = new Halfedge[_hashsize];
 			// dummy Halfedge at the top of each hash
 			for (i = 0; i < _hashsize; ++i) {
 				_hash [i] = Halfedge.createDummy ();

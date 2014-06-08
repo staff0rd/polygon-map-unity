@@ -105,10 +105,10 @@ namespace Delaunay
 			
 			for (int i = lineSegments.Count; --i > -1;) {
 				LineSegment lineSegment = lineSegments [i];
-				
-				Node node0 = nodes [lineSegment.p0];
+
+				Node node0 = null;
 				Node rootOfSet0;
-				if (node0 == null) {
+				if (!nodes.ContainsKey (lineSegment.p0)) {
 					node0 = nodePool.Count > 0 ? nodePool.Pop () : new Node ();
 					// intialize the node:
 					rootOfSet0 = node0.parent = node0;
@@ -116,12 +116,13 @@ namespace Delaunay
 					
 					nodes [lineSegment.p0] = node0;
 				} else {
+					node0 = nodes [lineSegment.p0];
 					rootOfSet0 = find (node0);
 				}
 				
-				Node node1 = nodes [lineSegment.p1];
+				Node node1 = null;
 				Node rootOfSet1;
-				if (node1 == null) {
+				if (!nodes.ContainsKey (lineSegment.p1)) {
 					node1 = nodePool.Count > 0 ? nodePool.Pop () : new Node ();
 					// intialize the node:
 					rootOfSet1 = node1.parent = node1;
@@ -129,6 +130,7 @@ namespace Delaunay
 					
 					nodes [lineSegment.p1] = node1;
 				} else {
+					node1 = nodes [lineSegment.p1];
 					rootOfSet1 = find (node1);
 				}
 				

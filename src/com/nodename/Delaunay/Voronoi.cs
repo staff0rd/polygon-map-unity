@@ -84,6 +84,8 @@ namespace Delaunay
 		
 		private void addSite (Vector2 p, uint color, int index)
 		{
+			if (_sitesIndexedByLocation.ContainsKey (p))
+				return; // Prevent duplicate site! (Adapted from https://github.com/nodename/as3delaunay/issues/1)
 			float weight = UnityEngine.Random.value * 100f;
 			Site site = Site.Create (p, (uint)index, weight, color);
 			_sites.Add (site);
@@ -223,7 +225,7 @@ namespace Delaunay
 		{
 			Site newSite, bottomSite, topSite, tempSite;
 			Vertex v, vertex;
-			Vector2 newintstar;
+			Vector2 newintstar = Vector2.zero; //Because the compiler doesn't know that it will have a value - Julian
 			Side leftRight;
 			Halfedge lbnd, rbnd, llbnd, rrbnd, bisector;
 			Edge edge;
