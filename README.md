@@ -3,8 +3,8 @@ Unity-Delaunay
 
 Voronoi diagrams, Delaunay triangulation, minimum spanning graphs, convex hull and more. Ported to C# for use in the Unity game engine from https://github.com/nodename/as3delaunay.
 
-![Delaunay Triangulation](screenshot.png)
-![Spanning Graph Example](screenshot.png)
+![Delaunay Triangulation](triangulation.png)
+![Spanning Graph Example](spanning_graph.png)
 
 ### Features: ###
 
