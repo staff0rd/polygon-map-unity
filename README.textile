@@ -1,1 +1,0 @@
-Please see the "Project page":http://nodename.github.com/as3delaunay/ .
