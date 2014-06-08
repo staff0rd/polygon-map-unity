@@ -1,115 +1,101 @@
+using Delaunay.LR;
+using Delaunay.Utils;
+using System.Collections.Generic;
+
 namespace Delaunay
 {
-	
-	
-	internal final class EdgeReorderer
+	public enum VertexOrSite
 	{
-		private var _edges:Vector.<Edge>;
-		private var _edgeOrientations:Vector.<LR>;
-		public function get edges():Vector.<Edge>
-		{
-			return _edges;
+		VERTEX,
+		SITE
+	}
+	
+	sealed class EdgeReorderer: Utils.IDisposable
+	{
+		private List<Edge> _edges;
+		private List<Side> _edgeOrientations;
+		public List<Edge> edges {
+			get { return _edges;}
 		}
-		public function get edgeOrientations():Vector.<LR>
-		{
-			return _edgeOrientations;
-		}
-		
-		public function EdgeReorderer(origEdges:Vector.<Edge>, criterion:Class)
-		{
-			if (criterion != Vertex && criterion != Site)
-			{
-				throw new ArgumentError("Edges: criterion must be Vertex or Site");
-			}
-			_edges = new Vector.<Edge>();
-			_edgeOrientations = new Vector.<LR>();
-			if (origEdges.length > 0)
-			{
-				_edges = reorderEdges(origEdges, criterion);
-			}
+		public List<Side> edgeOrientations {
+			get{ return _edgeOrientations;}
 		}
 		
-		public function dispose():void
+		public EdgeReorderer (List<Edge> origEdges, VertexOrSite criterion)
+		{
+			_edges = new List<Edge> ();
+			_edgeOrientations = new List<Side> ();
+			if (origEdges.Count > 0) {
+				_edges = reorderEdges (origEdges, criterion);
+			}
+		}
+		
+		public void Dispose ()
 		{
 			_edges = null;
 			_edgeOrientations = null;
 		}
 
-		private function reorderEdges(origEdges:Vector.<Edge>, criterion:Class):Vector.<Edge>
+		private List<Edge> reorderEdges (List<Edge> origEdges, VertexOrSite criterion)
 		{
-			var i:int;
-			var j:int;
-			var n:int = origEdges.length;
-			var edge:Edge;
+			int i;
+			int n = origEdges.Count;
+			Edge edge;
 			// we're going to reorder the edges in order of traversal
-			var done:Vector.<Boolean> = new Vector.<Boolean>(n, true);
-			var nDone:int = 0;
-			for each (var b:Boolean in done)
-			{
-				b = false;
+			bool[] done = new bool[n];
+			int nDone = 0;
+			for (int j=0; j<n; j++) {
+				done [j] = false;
 			}
-			var newEdges:Vector.<Edge> = new Vector.<Edge>();
+			List<Edge> newEdges = new List<Edge> (); // TODO: Switch to Deque if performance is a concern
 			
 			i = 0;
-			edge = origEdges[i];
-			newEdges.push(edge);
-			_edgeOrientations.push(LR.LEFT);
-			var firstPoint:ICoord = (criterion == Vertex) ? edge.leftVertex : edge.leftSite;
-			var lastPoint:ICoord = (criterion == Vertex) ? edge.rightVertex : edge.rightSite;
+			edge = origEdges [i];
+			newEdges.Add (edge);
+			_edgeOrientations.Add (Side.LEFT);
+			ICoord firstPoint = (criterion == VertexOrSite.VERTEX) ? (ICoord)edge.leftVertex : (ICoord)edge.leftSite;
+			ICoord lastPoint = (criterion == VertexOrSite.VERTEX) ? (ICoord)edge.rightVertex : (ICoord)edge.rightSite;
 			
-			if (firstPoint == Vertex.VERTEX_AT_INFINITY || lastPoint == Vertex.VERTEX_AT_INFINITY)
-			{
-				return new Vector.<Edge>();
+			if (firstPoint == Vertex.VERTEX_AT_INFINITY || lastPoint == Vertex.VERTEX_AT_INFINITY) {
+				return new List<Edge> ();
 			}
 			
-			done[i] = true;
+			done [i] = true;
 			++nDone;
 			
-			while (nDone < n)
-			{
-				for (i = 1; i < n; ++i)
-				{
-					if (done[i])
-					{
+			while (nDone < n) {
+				for (i = 1; i < n; ++i) {
+					if (done [i]) {
 						continue;
 					}
-					edge = origEdges[i];
-					var leftPoint:ICoord = (criterion == Vertex) ? edge.leftVertex : edge.leftSite;
-					var rightPoint:ICoord = (criterion == Vertex) ? edge.rightVertex : edge.rightSite;
-					if (leftPoint == Vertex.VERTEX_AT_INFINITY || rightPoint == Vertex.VERTEX_AT_INFINITY)
-					{
-						return new Vector.<Edge>();
+					edge = origEdges [i];
+					ICoord leftPoint = (criterion == VertexOrSite.VERTEX) ? (ICoord)edge.leftVertex : (ICoord)edge.leftSite;
+					ICoord rightPoint = (criterion == VertexOrSite.VERTEX) ? (ICoord)edge.rightVertex : (ICoord)edge.rightSite;
+					if (leftPoint == Vertex.VERTEX_AT_INFINITY || rightPoint == Vertex.VERTEX_AT_INFINITY) {
+						return new List<Edge> ();
 					}
-					if (leftPoint == lastPoint)
-					{
+					if (leftPoint == lastPoint) {
 						lastPoint = rightPoint;
-						_edgeOrientations.push(LR.LEFT);
-						newEdges.push(edge);
-						done[i] = true;
-					}
-					else if (rightPoint == firstPoint)
-					{
+						_edgeOrientations.Add (Side.LEFT);
+						newEdges.Add (edge);
+						done [i] = true;
+					} else if (rightPoint == firstPoint) {
 						firstPoint = leftPoint;
-						_edgeOrientations.unshift(LR.LEFT);
-						newEdges.unshift(edge);
-						done[i] = true;
-					}
-					else if (leftPoint == firstPoint)
-					{
+						_edgeOrientations.Insert (0, Side.LEFT); // TODO: Change datastructure if this is slow
+						newEdges.Insert (0, edge);
+						done [i] = true;
+					} else if (leftPoint == firstPoint) {
 						firstPoint = rightPoint;
-						_edgeOrientations.unshift(LR.RIGHT);
-						newEdges.unshift(edge);
-						done[i] = true;
-					}
-					else if (rightPoint == lastPoint)
-					{
+						_edgeOrientations.Insert (0, Side.RIGHT);
+						newEdges.Insert (0, edge);
+						done [i] = true;
+					} else if (rightPoint == lastPoint) {
 						lastPoint = leftPoint;
-						_edgeOrientations.push(LR.RIGHT);
-						newEdges.push(edge);
-						done[i] = true;
+						_edgeOrientations.Add (Side.RIGHT);
+						newEdges.Add (edge);
+						done [i] = true;
 					}
-					if (done[i])
-					{
+					if (done [i]) {
 						++nDone;
 					}
 				}

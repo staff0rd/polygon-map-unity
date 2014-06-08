@@ -199,7 +199,7 @@ namespace Delaunay
 		private void ReorderEdges ()
 		{
 			//trace("_edges:", _edges);
-			EdgeReorderer reorderer = new EdgeReorderer (_edges, Vertex);
+			EdgeReorderer reorderer = new EdgeReorderer (_edges, VertexOrSite.VERTEX);
 			_edges = reorderer.edges;
 			//trace("reordered:", _edges);
 			_edgeOrientations = reorderer.edgeOrientations;

@@ -8,7 +8,7 @@ namespace Delaunay
 	
 	public sealed class Vertex: ICoord
 	{
-		static readonly Vertex VERTEX_AT_INFINITY = new Vertex (float.NaN, float.NaN);
+		public static readonly Vertex VERTEX_AT_INFINITY = new Vertex (float.NaN, float.NaN);
 		
 		private static Stack<Vertex> _pool = new Stack<Vertex> ();
 		private static Vertex Create (float x, float y)

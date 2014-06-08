@@ -148,7 +148,7 @@ namespace Delaunay
 		// the two Voronoi vertices that the edge connects
 		//		(if one of them is null, the edge extends to infinity)
 		private Vertex _leftVertex;
-		Vertex leftVertex {
+		public Vertex leftVertex {
 			get { return _leftVertex;}
 		}
 		private Vertex _rightVertex;
