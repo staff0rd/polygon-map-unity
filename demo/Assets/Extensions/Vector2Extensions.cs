@@ -3,6 +3,14 @@ using UnityEngine;
 
 public static class Vector2Extensions
 {
+    public static Vector2 Interpolate(Vector2 pt1, Vector2 pt2, float f)
+    {
+        var x = f * pt1.x + (1 - f) * pt2.x;
+        var y = f * pt1.y + (1 - f) * pt2.y;
+
+        return new Vector2(x, y);
+    }
+
     public static void DrawLine(this Texture2D tex, int x0, int y0, int x1, int y1, Color col)
     {
         int dy = (int)(y1 - y0);

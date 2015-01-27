@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Delaunay;
 using Delaunay.Geo;
 using System.Linq;
+using Assets.Graph;
 
 public class VoronoiDemo : MonoBehaviour
 {
@@ -14,6 +15,8 @@ public class VoronoiDemo : MonoBehaviour
 	private List<LineSegment> _edges = null;
 	private List<LineSegment> _spanningTree;
 	private List<LineSegment> _delaunayTriangulation;
+
+    Graph _graph;
 
     const int _textureScale = 5;
     int _textureWidth = (int)_mapWidth * _textureScale;
@@ -57,6 +60,8 @@ public class VoronoiDemo : MonoBehaviour
 			
 		_spanningTree = v.SpanningTree (KruskalType.MINIMUM);
 		_delaunayTriangulation = v.DelaunayTriangulation ();
+
+        _graph = new Graph(m_points, v);
 
         CreateTexture();
 	}
