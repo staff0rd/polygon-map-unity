@@ -7,8 +7,8 @@ using Assets.Graph;
 
 public class VoronoiDemo : MonoBehaviour
 {
-	private int _pointCount = 50;
-
+	private int _pointCount = 250;
+    float _lakeThreshold = 0.3f;
 	private List<Vector2> m_points;
 	const float _mapWidth = 50;
 	const float _mapHeight = 50;
@@ -59,9 +59,9 @@ public class VoronoiDemo : MonoBehaviour
 		_edges = v.VoronoiDiagram ();
 			
 		_spanningTree = v.SpanningTree (KruskalType.MINIMUM);
-		_delaunayTriangulation = v.DelaunayTriangulation ();
+		_delaunayTriangulation = v.DelaunayTriangulation();
 
-        _graph = new Graph(m_points, v, (int)_mapWidth, (int)_mapHeight);
+        _graph = new Graph(m_points, v, (int)_mapWidth, (int)_mapHeight, _lakeThreshold);
 
         CreateTexture();
 	}
@@ -83,8 +83,12 @@ public class VoronoiDemo : MonoBehaviour
         }
 
         //DrawLine(texture, 0, 0, _mapWidth * _textureScale, _mapHeight * _textureScale, Color.yellow);
-        texture.FloodFillArea(2 * _textureScale, 2 * _textureScale, Color.red);
-        texture.FloodFillArea((int)(_mapWidth / 2 * _textureScale), (int)(_mapHeight / 2 * _textureScale), Color.blue);
+        foreach (var c in _graph.centers)
+            //texture.DrawLine((int)(c.point.x * _textureScale), (int)(c.point.y * _textureScale), 0, 0, c.water ? Color.blue : Color.green);
+            texture.FloodFillArea((int)(c.point.x * _textureScale), (int)(c.point.y * _textureScale), c.ocean ? Color.blue : Color.grey);
+
+        //texture.FloodFillArea(2 * _textureScale, 2 * _textureScale, Color.red);
+        //texture.FloodFillArea((int)(_mapWidth / 2 * _textureScale), (int)(_mapHeight / 2 * _textureScale), Color.blue);
         texture.Apply();
         
         var plane = GameObject.Find("Background");

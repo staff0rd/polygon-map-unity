@@ -18,15 +18,15 @@ namespace Assets.Graph
         public List<Corner> corners = new List<Corner>();
         public List<Edge> edges = new List<Edge>();
 
-        public Graph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi, int width, int height)
+        public Graph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi, int width, int height, float lakeThreshold)
         {
             Width = width;
             Height = height;
-            inside = IslandShape.makeRadial();
+            inside = IslandShape.makePerlin();
 
             BuildGraph(points, voronoi);
-
             AssignCornerElevations();
+            AssignOceanCoastAndLand(lakeThreshold);
         }
 
         // Build graph data structure in 'edges', 'centers', 'corners',
@@ -241,6 +241,84 @@ namespace Assets.Graph
                         queue.Enqueue(s);
                     }
                 }
+            }
+        }
+
+        // Determine polygon and corner types: ocean, coast, land.
+        public void AssignOceanCoastAndLand(float lakeThreshold)
+        {
+            // Compute polygon attributes 'ocean' and 'water' based on the
+            // corner attributes. Count the water corners per
+            // polygon. Oceans are all polygons connected to the edge of the
+            // map. In the first pass, mark the edges of the map as ocean;
+            // in the second pass, mark any water-containing polygon
+            // connected an ocean as ocean.
+            var queue = new Queue<Center>();
+            //var p:Center, q:Corner, r:Center, numWater:int;
+
+            foreach (var p in centers)
+            {
+                var numWater = 0;
+                foreach (var q in p.corners)
+                {
+                    if (q.border)
+                    {
+                        p.border = true;
+                        p.ocean = true;
+                        q.water = true;
+                        queue.Enqueue(p);
+                    }
+
+                    if (q.water)
+                        numWater += 1;
+
+                }
+                p.water = (p.ocean || numWater >= p.corners.Count * lakeThreshold);
+            }
+            while (queue.Any())
+            {
+                var p = queue.Dequeue();
+                foreach (var r in p.neighbors)
+                {
+                    if (r.water && !r.ocean)
+                    {
+                        r.ocean = true;
+                        queue.Enqueue(r);
+                    }
+                }
+            }
+
+            // Set the polygon attribute 'coast' based on its neighbors. If
+            // it has at least one ocean and at least one land neighbor,
+            // then this is a coastal polygon.
+            foreach (var p in centers)
+            {
+                var numOcean = 0;
+                var numLand = 0;
+                foreach (var r in p.neighbors)
+                {
+                    numOcean += r.ocean ? 1 : 0;
+                    numLand += !r.water ? 1 : 0;
+                }
+                p.coast = (numOcean > 0) && (numLand > 0);
+            }
+
+            // Set the corner attributes based on the computed polygon
+            // attributes. If all polygons connected to this corner are
+            // ocean, then it's ocean; if all are land, then it's land;
+            // otherwise it's coast.
+            foreach (var q in corners)
+            {
+                var numOcean = 0;
+                var numLand = 0;
+                foreach (var p in q.touches)
+                {
+                    numOcean += p.ocean ? 1 : 0;
+                    numLand += !p.water ? 1 : 0;
+                }
+                q.ocean = (numOcean == q.touches.Count);
+                q.coast = (numOcean > 0) && (numLand > 0);
+                q.water = q.border || ((numLand != q.touches.Count) && !q.coast);
             }
         }
     }

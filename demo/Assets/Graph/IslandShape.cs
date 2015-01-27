@@ -40,7 +40,8 @@ namespace Assets.Graph
                 {
                     r1 = r2 = 0.2;
                 }
-                return (length < r1 || (length > r1 * ISLAND_FACTOR && length < r2));
+                var result = (length < r1 || (length > r1 * ISLAND_FACTOR && length < r2));
+                return result;
             };
 
             return inside;
@@ -49,10 +50,13 @@ namespace Assets.Graph
         // The Perlin-based island combines perlin noise with the radius
         public static System.Func<Vector2, bool> makePerlin()
         {
-            var offset = Random.Range(0, int.MaxValue / 2);
+            var offset = Random.Range(0, 100) + 1;
             System.Func<Vector2, bool> inside = q =>
             {
-                return Mathf.PerlinNoise(q.x, q.y) > (0.3 + 0.3 * q.magnitude * q.magnitude);
+                var perlin = Mathf.PerlinNoise(q.x / offset , q.y / offset);
+                var checkValue = (0.3 + 0.3 * q.magnitude * q.magnitude);
+                var result = perlin > .35f;
+                return result;
             };
             return inside;
         }
