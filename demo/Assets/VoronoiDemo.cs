@@ -61,7 +61,7 @@ public class VoronoiDemo : MonoBehaviour
 		_spanningTree = v.SpanningTree (KruskalType.MINIMUM);
 		_delaunayTriangulation = v.DelaunayTriangulation ();
 
-        _graph = new Graph(m_points, v);
+        _graph = new Graph(m_points, v, (int)_mapWidth, (int)_mapHeight);
 
         CreateTexture();
 	}

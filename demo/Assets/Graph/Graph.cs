@@ -10,13 +10,17 @@ namespace Assets.Graph
     {
         List<KeyValuePair<int, Corner>> _cornerMap = new List<KeyValuePair<int, Corner>>();
 
-        public int size;
+        public int Width { get; private set; }
+        public int Height { get; private set; }
         public List<Center> centers = new List<Center>();
         public List<Corner> corners = new List<Corner>();
         public List<Edge> edges = new List<Edge>();
 
-        public Graph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi)
+        public Graph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi, int width, int height)
         {
+            Width = width;
+            Height = height;
+
             //var p:Center, q:Corner, point:Point, other:Point;
             var libedges = voronoi.Edges();
 
@@ -133,7 +137,7 @@ namespace Assets.Graph
 
             var corner = new Corner { index = corners.Count, point = point };
             corners.Add(corner);
-            corner.border = point.x == 0 || point.x == size || point.y == 0 || point.y == size;
+            corner.border = point.x == 0 || point.x == Width || point.y == 0 || point.y == Height;
 
             _cornerMap.Add(new KeyValuePair<int, Corner>((int)(point.x), corner));
 
