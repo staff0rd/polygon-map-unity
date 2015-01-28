@@ -17,6 +17,8 @@ namespace Assets.Graph
         public List<Center> centers = new List<Center>();
         public List<Corner> corners = new List<Corner>();
         public List<Edge> edges = new List<Edge>();
+        
+        private List<Corner> LandCorners { get { return corners.Where(p => !p.ocean && !p.coast).ToList(); } }
 
         public Graph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi, int width, int height, float lakeThreshold)
         {
@@ -27,18 +29,40 @@ namespace Assets.Graph
             BuildGraph(points, voronoi);
             AssignCornerElevations();
             AssignOceanCoastAndLand(lakeThreshold);
+            RedistributeElevations();
+
+            AssignPolygonElevations();
+
+            // Determine downslope paths.
+            CalculateDownslopes();
+
+            // Determine watersheds: for every corner, where does it flow
+            // out into the ocean? 
+            CalculateWatersheds();
+
+            // Create rivers.
+            CreateRivers();
+
+            // Determine moisture at corners, starting at rivers
+            // and lakes, but not oceans. Then redistribute
+            // moisture to cover the entire range evenly from 0.0
+            // to 1.0. Then assign polygon moisture as the average
+            // of the corner moisture.
+            AssignCornerMoisture();
+            RedistributeMoisture();
+            AssignPolygonMoisture();
         }
 
-        // Build graph data structure in 'edges', 'centers', 'corners',
-        // based on information in the Voronoi results: point.neighbors
-        // will be a list of neighboring points of the same type (corner
-        // or center); point.edges will be a list of edges that include
-        // that point. Each edge connects to four points: the Voronoi edge
-        // edge.{v0,v1} and its dual Delaunay triangle edge edge.{d0,d1}.
-        // For boundary polygons, the Delaunay edge will have one null
-        // point, and the Voronoi edge may be null.
         private void BuildGraph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi)
         {
+            // Build graph data structure in 'edges', 'centers', 'corners',
+            // based on information in the Voronoi results: point.neighbors
+            // will be a list of neighboring points of the same type (corner
+            // or center); point.edges will be a list of edges that include
+            // that point. Each edge connects to four points: the Voronoi edge
+            // edge.{v0,v1} and its dual Delaunay triangle edge edge.{d0,d1}.
+            // For boundary polygons, the Delaunay edge will have one null
+            // point, and the Voronoi edge may be null.
             var libedges = voronoi.Edges();
 
             var centerLookup = new Dictionary<Vector2?, Center>();
@@ -72,8 +96,8 @@ namespace Assets.Graph
                     river = 0,
 
                     // Edges point to corners. Edges point to centers. 
-                    v0 = makeCorner(vedge.p0),
-                    v1 = makeCorner(vedge.p1),
+                    v0 = MakeCorner(vedge.p0),
+                    v1 = MakeCorner(vedge.p1),
                     d0 = centerLookup[dedge.p0],
                     d1 = centerLookup[dedge.p1]
                 };
@@ -91,39 +115,39 @@ namespace Assets.Graph
                 // Centers point to centers.
                 if (edge.d0 != null && edge.d1 != null)
                 {
-                    addToCenterList(edge.d0.neighbors, edge.d1);
-                    addToCenterList(edge.d1.neighbors, edge.d0);
+                    AddToCenterList(edge.d0.neighbors, edge.d1);
+                    AddToCenterList(edge.d1.neighbors, edge.d0);
                 }
 
                 // Corners point to corners
                 if (edge.v0 != null && edge.v1 != null)
                 {
-                    addToCornerList(edge.v0.adjacent, edge.v1);
-                    addToCornerList(edge.v1.adjacent, edge.v0);
+                    AddToCornerList(edge.v0.adjacent, edge.v1);
+                    AddToCornerList(edge.v1.adjacent, edge.v0);
                 }
 
                 // Centers point to corners
                 if (edge.d0 != null)
                 {
-                    addToCornerList(edge.d0.corners, edge.v0);
-                    addToCornerList(edge.d0.corners, edge.v1);
+                    AddToCornerList(edge.d0.corners, edge.v0);
+                    AddToCornerList(edge.d0.corners, edge.v1);
                 }
                 if (edge.d1 != null)
                 {
-                    addToCornerList(edge.d1.corners, edge.v0);
-                    addToCornerList(edge.d1.corners, edge.v1);
+                    AddToCornerList(edge.d1.corners, edge.v0);
+                    AddToCornerList(edge.d1.corners, edge.v1);
                 }
 
                 // Corners point to centers
                 if (edge.v0 != null)
                 {
-                    addToCenterList(edge.v0.touches, edge.d0);
-                    addToCenterList(edge.v0.touches, edge.d1);
+                    AddToCenterList(edge.v0.touches, edge.d0);
+                    AddToCenterList(edge.v0.touches, edge.d1);
                 }
                 if (edge.v1 != null)
                 {
-                    addToCenterList(edge.v1.touches, edge.d0);
-                    addToCenterList(edge.v1.touches, edge.d1);
+                    AddToCenterList(edge.v1.touches, edge.d0);
+                    AddToCenterList(edge.v1.touches, edge.d1);
                 }
             }
 
@@ -143,7 +167,7 @@ namespace Assets.Graph
             // required for polygon fill
             foreach (var center in centers)
             {
-                center.corners.Sort(MakeComparison(center));
+                center.corners.Sort(ClockwiseComparison(center));
             }
         }
 
@@ -153,25 +177,25 @@ namespace Assets.Graph
                 topLeft.corners.Add(new Corner { ocean = true, point = new Vector2(x, y) });
         }
 
-        public Comparison<Corner> MakeComparison(Center center)
+        private Comparison<Corner> ClockwiseComparison(Center center)
         {
-            Comparison<Corner> result = 
-                (a,b) =>
+            Comparison<Corner> result =
+                (a, b) =>
                 {
-                    // do comparison with x, y and extraParameter
-                    return (int)(((a.point.x - center.point.x) * (b.point.y - center.point.y) - (b.point.x - center.point.x) * (a.point.y - center.point.y))*1000);
+                    return (int)(((a.point.x - center.point.x) * (b.point.y - center.point.y) - (b.point.x - center.point.x) * (a.point.y - center.point.y)) * 1000);
                 };
             return result;
         }
 
-        // The Voronoi library generates multiple Point objects for
-        // corners, and we need to canonicalize to one Corner object.
-        // To make lookup fast, we keep an array of Points, bucketed by
-        // x value, and then we only have to look at other Points in
-        // nearby buckets. When we fail to find one, we'll create a new
-        // Corner object.
-        private Corner makeCorner(Vector2? nullablePoint)
+        private Corner MakeCorner(Vector2? nullablePoint)
         {
+            // The Voronoi library generates multiple Point objects for
+            // corners, and we need to canonicalize to one Corner object.
+            // To make lookup fast, we keep an array of Points, bucketed by
+            // x value, and then we only have to look at other Points in
+            // nearby buckets. When we fail to find one, we'll create a new
+            // Corner object.
+
             if (nullablePoint == null)
                 return null;
 
@@ -197,27 +221,28 @@ namespace Assets.Graph
             return corner;
         }
 
-        private void addToCornerList(List<Corner> v, Corner x)
+        private void AddToCornerList(List<Corner> v, Corner x)
         {
             if (x != null && v.IndexOf(x) < 0)
                 v.Add(x);
         }
 
-        private void addToCenterList(List<Center> v, Center x)
+        private void AddToCenterList(List<Center> v, Center x)
         {
             if (x != null && v.IndexOf(x) < 0) { v.Add(x); }
         }
 
-        // Determine elevations and water at Voronoi corners. By
-        // construction, we have no local minima. This is important for
-        // the downslope vectors later, which are used in the river
-        // construction algorithm. Also by construction, inlets/bays
-        // push low elevation areas inland, which means many rivers end
-        // up flowing out through them. Also by construction, lakes
-        // often end up on river paths because they don't raise the
-        // elevation as much as other terrain does.
         private void AssignCornerElevations()
         {
+            // Determine elevations and water at Voronoi corners. By
+            // construction, we have no local minima. This is important for
+            // the downslope vectors later, which are used in the river
+            // construction algorithm. Also by construction, inlets/bays
+            // push low elevation areas inland, which means many rivers end
+            // up flowing out through them. Also by construction, lakes
+            // often end up on river paths because they don't raise the
+            // elevation as much as other terrain does.
+
             //var q:Corner, s:Corner;
             var queue = new Queue<Corner>();
 
@@ -280,8 +305,7 @@ namespace Assets.Graph
             }
         }
 
-        // Determine polygon and corner types: ocean, coast, land.
-        public void AssignOceanCoastAndLand(float lakeThreshold)
+        private void AssignOceanCoastAndLand(float lakeThreshold)
         {
             // Compute polygon attributes 'ocean' and 'water' based on the
             // corner attributes. Count the water corners per
@@ -355,6 +379,234 @@ namespace Assets.Graph
                 q.ocean = (numOcean == q.touches.Count);
                 q.coast = (numOcean > 0) && (numLand > 0);
                 q.water = q.border || ((numLand != q.touches.Count) && !q.coast);
+            }
+        }
+
+        private void RedistributeElevations()
+        {
+            // Change the overall distribution of elevations so that lower
+            // elevations are more common than higher
+            // elevations. Specifically, we want elevation X to have frequency
+            // (1-X).  To do this we will sort the corners, then set each
+            // corner to its desired elevation.
+
+            var locations = LandCorners;
+            // SCALE_FACTOR increases the mountain area. At 1.0 the maximum
+            // elevation barely shows up on the map, so we set it to 1.1.
+            var SCALE_FACTOR = 1.1f;
+            locations.Sort((a, b) => a.elevation.CompareTo(b.elevation));
+            for (int i = 0; i < locations.Count; i++)
+            {
+                // Let y(x) be the total area that we want at elevation <= x.
+                // We want the higher elevations to occur less than lower
+                // ones, and set the area to be y(x) = 1 - (1-x)^2.
+                var y = (float)i / (locations.Count - 1);
+                // Now we have to solve for x, given the known y.
+                //  *  y = 1 - (1-x)^2
+                //  *  y = 1 - (1 - 2x + x^2)
+                //  *  y = 2x - x^2
+                //  *  x^2 - 2x + y = 0
+                // From this we can use the quadratic equation to get:
+                float x = Mathf.Sqrt(SCALE_FACTOR) - Mathf.Sqrt(SCALE_FACTOR * (1 - y));
+                if (x > 1.0) x = 1.0f;  // TODO: does this break downslopes?
+                locations[i].elevation = x;
+            }
+
+            // Assign elevations to non-land corners
+            corners.Where(p => p.ocean || p.coast).ToList().ForEach(p => p.elevation = 0);
+        }
+
+        private void AssignPolygonElevations()
+        {
+            // Polygon elevations are the average of their corners
+            foreach (var p in centers)
+            {
+                var sumElevation = 0.0f;
+                foreach (var q in p.corners)
+                {
+                    sumElevation += q.elevation;
+                }
+                p.elevation = sumElevation / p.corners.Count;
+            }
+        }
+
+        private void CalculateDownslopes()
+        {
+            // Calculate downslope pointers.  At every point, we point to the
+            // point downstream from it, or to itself.  This is used for
+            // generating rivers and watersheds.
+
+            foreach (var q in corners)
+            {
+                var r = q;
+                foreach (var s in q.adjacent)
+                {
+                    if (s.elevation <= r.elevation)
+                    {
+                        r = s;
+                    }
+                }
+                q.downslope = r;
+            }
+        }
+
+        private void CalculateWatersheds()
+        {
+            // Calculate the watershed of every land point. The watershed is
+            // the last downstream land point in the downslope graph. TODO:
+            // watersheds are currently calculated on corners, but it'd be
+            // more useful to compute them on polygon centers so that every
+            // polygon can be marked as being in one watershed.
+
+            // Initially the watershed pointer points downslope one step.      
+            foreach (var q in corners)
+            {
+                q.watershed = q;
+                if (!q.ocean && !q.coast)
+                {
+                    q.watershed = q.downslope;
+                }
+            }
+            // Follow the downslope pointers to the coast. Limit to 100
+            // iterations although most of the time with numPoints==2000 it
+            // only takes 20 iterations because most points are not far from
+            // a coast.  TODO: can run faster by looking at
+            // p.watershed.watershed instead of p.downslope.watershed.
+            for (var i = 0; i < 100; i++)
+            {
+                var changed = false;
+                foreach (var q in corners)
+                {
+                    if (!q.ocean && !q.coast && !q.watershed.coast)
+                    {
+                        var r = q.downslope.watershed;
+                        if (!r.ocean) q.watershed = r;
+                        changed = true;
+                    }
+                }
+                if (!changed) break;
+            }
+            // How big is each watershed?
+            foreach (var q in corners)
+            {
+                var r = q.watershed;
+                r.watershed_size = 1 + r.watershed_size;
+            }
+        }
+
+        private void CreateRivers()
+        {
+            // Create rivers along edges. Pick a random corner point, then
+            // move downslope. Mark the edges and corners as rivers.
+            for (var i = 0; i < (Width + Height) / 4; i++)
+            {
+                var q = corners[UnityEngine.Random.Range(0, corners.Count - 1)];
+                if (q.ocean || q.elevation < 0.3 || q.elevation > 0.9) continue;
+                // Bias rivers to go west: if (q.downslope.x > q.x) continue;
+                while (!q.coast)
+                {
+                    if (q == q.downslope)
+                    {
+                        break;
+                    }
+                    var edge = lookupEdgeFromCorner(q, q.downslope);
+                    edge.river = edge.river + 1;
+                    q.river++;
+                    q.downslope.river++;  // TODO: fix double count
+                    q = q.downslope;
+                }
+            }
+        }
+
+        private void AssignCornerMoisture()
+        {
+            // Calculate moisture. Freshwater sources spread moisture: rivers
+            // and lakes (not oceans). Saltwater sources have moisture but do
+            // not spread it (we set it at the end, after propagation).
+
+            var queue = new Queue<Corner>();
+            // Fresh water
+            foreach (var q in corners)
+            {
+                if ((q.water || q.river > 0) && !q.ocean)
+                {
+                    q.moisture = q.river > 0 ? Mathf.Min(3.0f, (0.2f * q.river)) : 1.0f;
+                    queue.Enqueue(q);
+                }
+                else
+                {
+                    q.moisture = 0;
+                }
+            }
+            while (queue.Any())
+            {
+                var q = queue.Dequeue();
+
+                foreach (var r in q.adjacent)
+                {
+                    var newMoisture = q.moisture * 0.9f;
+                    if (newMoisture > r.moisture)
+                    {
+                        r.moisture = newMoisture;
+                        queue.Enqueue(r);
+                    }
+                }
+            }
+            // Salt water
+            foreach (var q in corners)
+            {
+                if (q.ocean || q.coast)
+                {
+                    q.moisture = 1.0f;
+                }
+            }
+        }
+
+        private void AssignPolygonMoisture()
+        {
+            // Polygon moisture is the average of the moisture at corners
+            foreach (var p in centers)
+            {
+                var sumMoisture = 0.0f;
+                foreach (var q in p.corners)
+                {
+                    if (q.moisture > 1.0)
+                        q.moisture = 1.0f;
+                    sumMoisture += q.moisture;
+                }
+                p.moisture = sumMoisture / p.corners.Count;
+            }
+        }
+
+        private Edge lookupEdgeFromCenter(Center p, Center r)
+        {
+            foreach (var edge in p.borders)
+            {
+                if (edge.d0 == r || edge.d1 == r)
+                    return edge;
+            }
+            return null;
+        }
+
+        private Edge lookupEdgeFromCorner(Corner q, Corner s)
+        {
+            foreach (var edge in q.protrudes)
+            {
+                if (edge.v0 == s || edge.v1 == s)
+                    return edge;
+            }
+            return null;
+        }
+
+        private void RedistributeMoisture()
+        {
+            // Change the overall distribution of moisture to be evenly distributed.
+            var locations = LandCorners;
+            locations.Sort((a, b) => a.moisture.CompareTo(b.moisture));
+
+            for (var i = 0; i < locations.Count; i++)
+            {
+                locations[i].moisture = i / (locations.Count - 1);
             }
         }
     }

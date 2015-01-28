@@ -83,6 +83,9 @@ public class VoronoiDemo : MonoBehaviour
         foreach (var line in lines)
             DrawLine(texture, line[0], line[1], line[2], line[3], Color.black);
 
+        foreach (var line in _graph.edges.Where(p => p.river > 0))
+            DrawLine(texture, line.v0.point.x, line.v0.point.y, line.v1.point.x, line.v1.point.y, Color.blue);
+
         texture.Apply();
         
         var plane = GameObject.Find("Background");
