@@ -18,7 +18,7 @@ public class VoronoiDemo : MonoBehaviour
 
     Graph _graph;
 
-    const int _textureScale = 25;
+    const int _textureScale = 10;
     int _textureWidth = (int)_mapWidth * _textureScale;
     int _textureHeight = (int)_mapHeight * _textureScale;
 
