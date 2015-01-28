@@ -127,11 +127,30 @@ namespace Assets.Graph
                 }
             }
 
+            // TODO: use edges to determine these
+            var topLeft = centers.OrderBy(p => p.point.x + p.point.y).First();
+            AddCorner(topLeft, 0, 0);
+
+            var bottomRight = centers.OrderByDescending(p => p.point.x + p.point.y).First();
+            AddCorner(bottomRight, Width, Height);
+
+            var topRight = centers.OrderByDescending(p => Width - p.point.x + p.point.y).First();
+            AddCorner(topRight, 0, Height);
+
+            var bottomLeft = centers.OrderByDescending(p => p.point.x + Height - p.point.y).First();
+            AddCorner(bottomLeft, Width, 0);
+
             // required for polygon fill
             foreach (var center in centers)
             {
                 center.corners.Sort(MakeComparison(center));
             }
+        }
+
+        private static void AddCorner(Center topLeft, int x, int y)
+        {
+            if (topLeft.point.x != x || topLeft.point.y != y)
+                topLeft.corners.Add(new Corner { ocean = true, point = new Vector2(x, y) });
         }
 
         public Comparison<Corner> MakeComparison(Center center)
