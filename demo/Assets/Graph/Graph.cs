@@ -126,6 +126,23 @@ namespace Assets.Graph
                     addToCenterList(edge.v1.touches, edge.d1);
                 }
             }
+
+            // required for polygon fill
+            foreach (var center in centers)
+            {
+                center.corners.Sort(MakeComparison(center));
+            }
+        }
+
+        public Comparison<Corner> MakeComparison(Center center)
+        {
+            Comparison<Corner> result = 
+                (a,b) =>
+                {
+                    // do comparison with x, y and extraParameter
+                    return (int)(((a.point.x - center.point.x) * (b.point.y - center.point.y) - (b.point.x - center.point.x) * (a.point.y - center.point.y))*1000);
+                };
+            return result;
         }
 
         // The Voronoi library generates multiple Point objects for

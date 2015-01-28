@@ -50,12 +50,14 @@ namespace Assets.Graph
         // The Perlin-based island combines perlin noise with the radius
         public static System.Func<Vector2, bool> makePerlin()
         {
-            var offset = Random.Range(0, 100) + 1;
+            var offset = Random.Range(0, 100000);
             System.Func<Vector2, bool> inside = q =>
             {
-                var perlin = Mathf.PerlinNoise(q.x / offset , q.y / offset);
+                var x = q.x + offset;
+                var y = q.y + offset;
+                var perlin = Mathf.PerlinNoise(x/10 , y/10);
                 var checkValue = (0.3 + 0.3 * q.magnitude * q.magnitude);
-                var result = perlin > .35f;
+                var result = perlin > .3;
                 return result;
             };
             return inside;

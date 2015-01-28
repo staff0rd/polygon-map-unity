@@ -7,7 +7,7 @@ using Assets.Graph;
 
 public class VoronoiDemo : MonoBehaviour
 {
-	private int _pointCount = 250;
+	private int _pointCount =100;
     float _lakeThreshold = 0.3f;
 	private List<Vector2> m_points;
 	const float _mapWidth = 50;
@@ -18,7 +18,7 @@ public class VoronoiDemo : MonoBehaviour
 
     Graph _graph;
 
-    const int _textureScale = 5;
+    const int _textureScale = 10;
     int _textureWidth = (int)_mapWidth * _textureScale;
     int _textureHeight = (int)_mapHeight * _textureScale;
 
@@ -77,18 +77,12 @@ public class VoronoiDemo : MonoBehaviour
             ((Vector2)(p.p1)).x, ((Vector2)(p.p1)).y
         }).ToArray();
 
-        foreach (var line in lines)
-        {
-            DrawLine(texture, line[0], line[1], line[2], line[3], Color.black);
-        }
-
-        //DrawLine(texture, 0, 0, _mapWidth * _textureScale, _mapHeight * _textureScale, Color.yellow);
         foreach (var c in _graph.centers)
-            //texture.DrawLine((int)(c.point.x * _textureScale), (int)(c.point.y * _textureScale), 0, 0, c.water ? Color.blue : Color.green);
-            texture.FloodFillArea((int)(c.point.x * _textureScale), (int)(c.point.y * _textureScale), c.ocean ? Color.blue : Color.grey);
+            texture.FillPolygon(c.corners.Select(p => new Vector2(p.point.x * _textureScale, p.point.y * _textureScale)).ToArray(), c.ocean ? Color.blue : Color.gray);
 
-        //texture.FloodFillArea(2 * _textureScale, 2 * _textureScale, Color.red);
-        //texture.FloodFillArea((int)(_mapWidth / 2 * _textureScale), (int)(_mapHeight / 2 * _textureScale), Color.blue);
+        foreach (var line in lines)
+            DrawLine(texture, line[0], line[1], line[2], line[3], Color.black);
+
         texture.Apply();
         
         var plane = GameObject.Find("Background");
