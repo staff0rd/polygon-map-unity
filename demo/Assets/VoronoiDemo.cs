@@ -18,7 +18,7 @@ public class VoronoiDemo : MonoBehaviour
 
     Graph _graph;
 
-    const int _textureScale = 10;
+    const int _textureScale = 25;
     int _textureWidth = (int)_mapWidth * _textureScale;
     int _textureHeight = (int)_mapHeight * _textureScale;
 
@@ -83,8 +83,9 @@ public class VoronoiDemo : MonoBehaviour
         foreach (var line in lines)
             DrawLine(texture, line[0], line[1], line[2], line[3], Color.black);
 
-        foreach (var line in _graph.edges.Where(p => p.river > 0))
+        foreach (var line in _graph.edges.Where(p => p.river > 0 && !p.d0.water && !p.d1.water))
             DrawLine(texture, line.v0.point.x, line.v0.point.y, line.v1.point.x, line.v1.point.y, Color.blue);
+
 
         texture.Apply();
         
