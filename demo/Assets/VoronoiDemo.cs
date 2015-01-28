@@ -7,7 +7,7 @@ using Assets.Graph;
 
 public class VoronoiDemo : MonoBehaviour
 {
-	private int _pointCount =100;
+	private int _pointCount =500;
     float _lakeThreshold = 0.3f;
 	private List<Vector2> m_points;
 	const float _mapWidth = 50;
@@ -78,7 +78,7 @@ public class VoronoiDemo : MonoBehaviour
         }).ToArray();
 
         foreach (var c in _graph.centers)
-            texture.FillPolygon(c.corners.Select(p => new Vector2(p.point.x * _textureScale, p.point.y * _textureScale)).ToArray(), c.ocean ? Color.blue : Color.gray);
+            texture.FillPolygon(c.corners.Select(p => new Vector2(p.point.x * _textureScale, p.point.y * _textureScale)).ToArray(), BiomeProperties.Colors[c.biome]);
 
         foreach (var line in lines)
             DrawLine(texture, line[0], line[1], line[2], line[3], Color.black);

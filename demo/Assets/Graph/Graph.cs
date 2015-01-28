@@ -17,7 +17,7 @@ namespace Assets.Graph
         public List<Center> centers = new List<Center>();
         public List<Corner> corners = new List<Corner>();
         public List<Edge> edges = new List<Edge>();
-        
+
         private List<Corner> LandCorners { get { return corners.Where(p => !p.ocean && !p.coast).ToList(); } }
 
         public Graph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi, int width, int height, float lakeThreshold)
@@ -51,6 +51,8 @@ namespace Assets.Graph
             AssignCornerMoisture();
             RedistributeMoisture();
             AssignPolygonMoisture();
+
+            centers.ForEach(p => p.biome = GetBiome(p));
         }
 
         private void BuildGraph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi)
@@ -606,7 +608,52 @@ namespace Assets.Graph
 
             for (var i = 0; i < locations.Count; i++)
             {
-                locations[i].moisture = i / (locations.Count - 1);
+                locations[i].moisture = (float)i / (locations.Count - 1);
+            }
+        }
+
+        static Biome GetBiome(Center p)
+        {
+            if (p.ocean)
+            {
+                return Biome.Ocean;
+            }
+            else if (p.water)
+            {
+                if (p.elevation < 0.1) return Biome.Marsh;
+                if (p.elevation > 0.8) return Biome.Ice;
+                return Biome.Lake;
+            }
+            else if (p.coast)
+            {
+                return Biome.Beach;
+            }
+            else if (p.elevation > 0.8)
+            {
+                if (p.moisture > 0.50) return Biome.Snow;
+                else if (p.moisture > 0.33) return Biome.Tundra;
+                else if (p.moisture > 0.16) return Biome.Bare;
+                else return Biome.Scorched;
+            }
+            else if (p.elevation > 0.6)
+            {
+                if (p.moisture > 0.66) return Biome.Taiga;
+                else if (p.moisture > 0.33) return Biome.Shrubland;
+                else return Biome.TemperateDesert;
+            }
+            else if (p.elevation > 0.3)
+            {
+                if (p.moisture > 0.83) return Biome.TemperateRainForest;
+                else if (p.moisture > 0.50) return Biome.TemperateDeciduousForest;
+                else if (p.moisture > 0.16) return Biome.Grassland;
+                else return Biome.TemperateDesert;
+            }
+            else
+            {
+                if (p.moisture > 0.66) return Biome.TropicalRainForest;
+                else if (p.moisture > 0.33) return Biome.TropicalSeasonalForest;
+                else if (p.moisture > 0.16) return Biome.Grassland;
+                else return Biome.SubtropicalDesert;
             }
         }
     }
