@@ -32,7 +32,11 @@ public class Camera : MonoBehaviour
 
         if (Input.GetMouseButton(1))
         {
-            transform.parent.Translate(new Vector3(deltaX, deltaY, 0) * _scrollSpeed);
+            Debug.Log(deltaX);
+            var newX = Mathf.Clamp(transform.parent.position.x + deltaX * _scrollSpeed, 0, Map.Width);
+            var newY = Mathf.Clamp(transform.parent.position.y + deltaY * _scrollSpeed, 0, Map.Height);
+
+            transform.parent.position = new Vector3(newX, newY, transform.parent.position.z);
         }
 
         if (Input.GetAxis("Mouse ScrollWheel") < 0 && transform.parent.localPosition.z > -20)
