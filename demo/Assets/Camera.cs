@@ -49,13 +49,4 @@ public class Camera : MonoBehaviour
             transform.parent.Translate(new Vector3(0, 0, _zoomSpeed));
         }
     }
-
-    void OnDrawGizmos()
-    {
-        if (_mouseLeftClick != Vector2.zero)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(new Vector3(_mouseLeftClick.x, _mouseLeftClick.y, 0), 1F);
-        }
-    }
 }
