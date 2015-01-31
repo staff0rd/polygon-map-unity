@@ -32,7 +32,6 @@ public class Camera : MonoBehaviour
 
         if (Input.GetMouseButton(1))
         {
-            Debug.Log(deltaX);
             var newX = Mathf.Clamp(transform.parent.position.x + deltaX * _scrollSpeed, 0, Map.Width);
             var newY = Mathf.Clamp(transform.parent.position.y + deltaY * _scrollSpeed, 0, Map.Height);
 
