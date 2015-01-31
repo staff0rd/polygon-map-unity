@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Delaunay;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Assets.Graph
+namespace Assets.Map
 {
     public class Graph
     {
@@ -20,7 +21,7 @@ namespace Assets.Graph
 
         private List<Corner> LandCorners { get { return corners.Where(p => !p.ocean && !p.coast).ToList(); } }
 
-        public Graph(IEnumerable<Vector2> points, Delaunay.Voronoi voronoi, int width, int height, float lakeThreshold)
+        public Graph(IEnumerable<Vector2> points, Voronoi voronoi, int width, int height, float lakeThreshold)
         {
             Width = width;
             Height = height;
@@ -654,6 +655,21 @@ namespace Assets.Graph
                 else if (p.moisture > 0.33) return Biome.TropicalSeasonalForest;
                 else if (p.moisture > 0.16) return Biome.Grassland;
                 else return Biome.SubtropicalDesert;
+            }
+        }
+
+        public static IEnumerable<Vector2> RelaxPoints(IEnumerable<Vector2> startingPoints, float width, float height)
+        {
+            Delaunay.Voronoi v = new Delaunay.Voronoi(startingPoints.ToList(), null, new Rect(0, 0, width, height));
+            foreach (var point in startingPoints)
+            {
+                var region = v.Region(point);
+                point.Set(0, 0);
+                foreach (var r in region)
+                    point.Set(point.x + r.x, point.y + r.y);
+
+                point.Set(point.x / region.Count, point.y / region.Count);
+                yield return point;
             }
         }
     }

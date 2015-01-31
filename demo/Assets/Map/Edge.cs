@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Graph
+namespace Assets.Map
 {
     public class Edge
     {

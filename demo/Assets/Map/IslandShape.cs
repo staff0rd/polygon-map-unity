@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Assets.Graph
+namespace Assets.Map
 {
     public class IslandShape
     {
