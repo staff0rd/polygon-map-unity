@@ -53,11 +53,12 @@ namespace Assets.Map
             var offset = Random.Range(0, 100000);
             System.Func<Vector2, bool> inside = q =>
             {
+                q = new Vector2(q.x / 25 - 1, q.y / 25 - 1);
                 var x = q.x + offset;
                 var y = q.y + offset;
                 var perlin = Mathf.PerlinNoise(x/10 , y/10);
                 var checkValue = (0.3 + 0.3 * q.magnitude * q.magnitude);
-                var result = perlin > .3;
+                var result = perlin > checkValue;
                 return result;
             };
             return inside;
