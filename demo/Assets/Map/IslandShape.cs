@@ -15,6 +15,8 @@ namespace Assets.Map
 
         // The radial island radius is based on overlapping sine waves 
         public static float ISLAND_FACTOR = 1.07f;  // 1.0 means no small islands; 2.0 leads to a lot
+        public static float PERLIN_CHECK_VALUE = 0.3f;
+
         public static System.Func<Vector2, bool> makeRadial()
         {
             var bumps = Random.Range(1, 6);
@@ -57,7 +59,7 @@ namespace Assets.Map
                 var x = q.x + offset;
                 var y = q.y + offset;
                 var perlin = Mathf.PerlinNoise(x/10 , y/10);
-                var checkValue = (0.3 + 0.3 * q.magnitude * q.magnitude);
+                var checkValue = (PERLIN_CHECK_VALUE + PERLIN_CHECK_VALUE * q.magnitude * q.magnitude);
                 var result = perlin > checkValue;
                 return result;
             };

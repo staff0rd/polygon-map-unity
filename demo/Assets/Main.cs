@@ -11,7 +11,8 @@ public class Main : MonoBehaviour
     const int _textureScale = 50;
     GameObject _selector;
     public bool Regenerate;
-    private int _seed;
+    public int Seed;
+    public float PerlinCheckValue = 0.3f;
 
     void Update()
     {
@@ -28,9 +29,11 @@ public class Main : MonoBehaviour
 
 	void Awake ()
 	{
+        IslandShape.PERLIN_CHECK_VALUE = PerlinCheckValue;
+
         _selector = GameObject.Find("Selector");
 
-        Random.seed = ++_seed;
+        Random.seed = Seed;
             
         _map = new Map();
 
