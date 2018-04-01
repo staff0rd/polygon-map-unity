@@ -40,7 +40,7 @@ namespace Assets.Map
 
             texture.Apply();
 
-            plane.renderer.material.mainTexture = texture;
+            plane.GetComponent<Renderer>().material.mainTexture = texture;
             plane.transform.localPosition = new Vector3(Map.Width / 2, Map.Height / 2, 1);
         }
 

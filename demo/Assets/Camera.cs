@@ -21,7 +21,7 @@ public class Camera : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
-            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = GetComponent<UnityEngine.Camera>().ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
